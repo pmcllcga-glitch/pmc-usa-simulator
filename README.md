@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --------------------------------------------------
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="Asia PCE Investment Return Simulator",
+    page_title="PMC USA - Investment Simulator",
     layout="wide"
 )
 
