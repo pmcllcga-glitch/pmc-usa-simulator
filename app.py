@@ -41,4 +41,4 @@ analysis_data = {
 df = pd.DataFrame(analysis_data)
 st.table(df)
 
-st.info("Based on PMC USA & Asia PCE Technology MOU")
+st.info("Based on PMC USA & Asia PCE Technology MOU")  
