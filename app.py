@@ -4,7 +4,7 @@ import pandas as pd
 # 1. 페이지 설정
 st.set_page_config(page_title="PMC USA Investment Simulator", layout="wide")
 
-# 2. 메인 제목 (이제 GDP 소리 절대 안 납니다)
+# 2. 메인 제목
 st.title("PMC USA & Asia PCE: Investment Analysis")
 st.markdown("---")
 
@@ -27,7 +27,7 @@ with col2:
 
 st.write("---")
 
-# 6. 상세 분석 표 (투자자가 좋아할 데이터)
+# 6. 상세 분석 표
 st.subheader("Detailed Investment Analysis")
 analysis_data = {
     "Description": ["Total Units", "Construction Cost Savings", "Early Completion Revenue", "Estimated Project Benefit"],
