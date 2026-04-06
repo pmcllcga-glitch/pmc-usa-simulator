@@ -16,7 +16,7 @@ try:
 except:
     st.info("조감도 이미지를 업로드 중입니다... (pmc_layout.jpg 파일이 필요합니다)")
 
-st.write("Modern multifamily development in Texas.jpg", ...")
+st.image("Modern multifamily development in Texas.jpg", use_container_width=True, caption="Modern multifamily development in Texas")
 
 # 4. 입력창 (사이드바)
 st.sidebar.header("Project Inputs")
