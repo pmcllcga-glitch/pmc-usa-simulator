@@ -263,3 +263,17 @@ st.caption(
     "Actual project economics may vary depending on structural design, logistics, crane costs, "
     "installation labor, financing terms, permitting conditions, local code requirements, and market demand."
 )
+import streamlit as st
+import plotly.graph_objects as go
+
+# 1. 페이지 설정 (탭 이름 수정)
+st.set_page_config(
+    page_title="PMC USA Investment Simulator",
+    layout="wide"
+)
+
+# 2. 제목 설정 (여기서 GDP Dashboard를 확실히 지웁니다)
+st.title("PMC USA & Asia PCE: Investment Analysis")
+st.markdown("---")
+
+# 나머지 코드는 기존과 동일하게 진행... (생략)
