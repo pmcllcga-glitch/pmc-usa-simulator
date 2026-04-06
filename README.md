@@ -14,7 +14,7 @@ st.set_page_config(
 # 2. Header
 # --------------------------------------------------
 # 상단 제목 및 설명
-st.title("Asia PCE Investment Return Simulator")
+st.title("PMC USA & Asia PCE: Investment Analysis")
 st.markdown(
     """
     # PMC USA Investment Simulator
