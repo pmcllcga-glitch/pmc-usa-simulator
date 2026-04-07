@@ -3,6 +3,12 @@ import pandas as pd
 from datetime import datetime
 import plotly.graph_objects as go
 import os
+import csv
+from pathlib import Path
+
+# Google Sheets
+import gspread
+from google.oauth2.service_account import Credentials
 
 # =========================================================
 # PAGE CONFIG
@@ -12,6 +18,23 @@ st.set_page_config(
     page_icon="PMC Logo.png",
     layout="wide"
 )
+
+# =========================================================
+# CONSTANTS
+# =========================================================
+CSV_BACKUP_PATH = "pmc_feasibility_requests_backup.csv"
+SHEET_HEADERS = [
+    "submitted_at_utc",
+    "full_name",
+    "company_name",
+    "email",
+    "project_state",
+    "project_type",
+    "estimated_unit_count",
+    "target_start_date",
+    "estimated_budget_usd",
+    "project_brief",
+]
 
 # =========================================================
 # CUSTOM CSS
@@ -58,6 +81,25 @@ html, body, [class*="css"] {
 .hero-inner {
     position: relative;
     z-index: 2;
+}
+.hero-logo-card {
+    width: 126px;
+    height: 126px;
+    background: rgba(255,255,255,0.96);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+    margin-bottom: 18px;
+    overflow: hidden;
+}
+.hero-logo-card img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
 }
 .eyebrow {
     text-transform: uppercase;
@@ -274,14 +316,88 @@ def safe_image(path, caption=None):
     else:
         st.warning(f"Image not found: {path}")
 
+def get_gsheet_client():
+    """
+    Expects Streamlit secrets in one of these shapes:
+    1) st.secrets["gcp_service_account"] = {...service account json...}
+    2) top-level service account keys directly in st.secrets
+    """
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+    ]
+
+    if "gcp_service_account" in st.secrets:
+        service_account_info = dict(st.secrets["gcp_service_account"])
+    else:
+        # fallback: assume the whole secrets object is the service account block
+        service_account_info = dict(st.secrets)
+
+    creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
+    return gspread.authorize(creds)
+
+def save_to_google_sheets(record: dict):
+    """
+    Expects one of:
+    - st.secrets["google_sheets"]["spreadsheet_name"]
+    - st.secrets["google_sheets"]["worksheet_name"] (optional)
+    OR
+    - st.secrets["spreadsheet_name"]
+    - st.secrets["worksheet_name"] (optional)
+    """
+    gc = get_gsheet_client()
+
+    spreadsheet_name = None
+    worksheet_name = "Sheet1"
+
+    if "google_sheets" in st.secrets:
+        spreadsheet_name = st.secrets["google_sheets"].get("spreadsheet_name")
+        worksheet_name = st.secrets["google_sheets"].get("worksheet_name", "Sheet1")
+    else:
+        spreadsheet_name = st.secrets.get("spreadsheet_name")
+        worksheet_name = st.secrets.get("worksheet_name", "Sheet1")
+
+    if not spreadsheet_name:
+        raise ValueError("Spreadsheet name not found in Streamlit secrets.")
+
+    sh = gc.open(spreadsheet_name)
+    ws = sh.worksheet(worksheet_name)
+
+    existing_header = ws.row_values(1)
+    if existing_header != SHEET_HEADERS:
+        if not existing_header:
+            ws.append_row(SHEET_HEADERS)
+        else:
+            # If a sheet exists but headers differ, do not overwrite silently.
+            # User can fix manually.
+            pass
+
+    row = [record.get(col, "") for col in SHEET_HEADERS]
+    ws.append_row(row, value_input_option="USER_ENTERED")
+
+def save_to_csv_backup(record: dict, csv_path: str = CSV_BACKUP_PATH):
+    file_exists = Path(csv_path).exists()
+
+    with open(csv_path, "a", newline="", encoding="utf-8-sig") as f:
+        writer = csv.DictWriter(f, fieldnames=SHEET_HEADERS)
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow({k: record.get(k, "") for k in SHEET_HEADERS})
+
 # =========================================================
 # HERO
 # =========================================================
-hero_logo_col, hero_text_col = st.columns([0.12, 0.88], gap="medium")
+hero_logo_col, hero_text_col = st.columns([0.14, 0.86], gap="medium")
 
 with hero_logo_col:
     if os.path.exists("PMC Logo.png"):
-        st.image("PMC Logo.png", width=120)
+        st.markdown('<div class="hero-logo-card">', unsafe_allow_html=True)
+        file_url = "PMC Logo.png"
+        st.markdown(
+            f'<img src="{file_url}" style="width:100%;height:100%;object-fit:contain;border-radius:12px;" />',
+            unsafe_allow_html=True,
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
 
 with hero_text_col:
     st.markdown("""
@@ -604,19 +720,52 @@ with st.form("feasibility_form"):
     if submitted:
         record = {
             "submitted_at_utc": datetime.utcnow().isoformat(),
-            "full_name": full_name,
-            "company_name": company_name,
-            "email": email,
-            "project_state": project_state,
+            "full_name": full_name.strip(),
+            "company_name": company_name.strip(),
+            "email": email.strip(),
+            "project_state": project_state.strip(),
             "project_type": project_type,
             "estimated_unit_count": estimated_unit_count,
             "target_start_date": str(target_start_date),
             "estimated_budget_usd": estimated_budget_usd,
-            "project_brief": project_brief
+            "project_brief": project_brief.strip(),
         }
 
-        # 기존 Google Sheets 저장 / CSV 백업 로직 넣는 자리
-        st.success("Thank you. Your feasibility review request has been recorded.")
+        sheets_ok = False
+        sheets_error = None
+        csv_ok = False
+        csv_error = None
+
+        # Always try CSV backup
+        try:
+            save_to_csv_backup(record)
+            csv_ok = True
+        except Exception as e:
+            csv_error = str(e)
+
+        # Then try Google Sheets
+        try:
+            save_to_google_sheets(record)
+            sheets_ok = True
+        except Exception as e:
+            sheets_error = str(e)
+
+        if sheets_ok and csv_ok:
+            st.success("Thank you. Your feasibility review request has been saved to Google Sheets and backed up locally.")
+        elif sheets_ok and not csv_ok:
+            st.success("Thank you. Your feasibility review request has been saved to Google Sheets.")
+            st.info(f"CSV backup was not created: {csv_error}")
+        elif not sheets_ok and csv_ok:
+            st.warning("Your request was saved to local CSV backup, but Google Sheets sync did not complete.")
+            st.info(f"Google Sheets error: {sheets_error}")
+        else:
+            st.error("Your request could not be saved. Please check your Streamlit secrets and file permissions.")
+            if sheets_error:
+                st.info(f"Google Sheets error: {sheets_error}")
+            if csv_error:
+                st.info(f"CSV backup error: {csv_error}")
+
+        st.write("Submitted data preview:")
         st.dataframe(pd.DataFrame([record]), use_container_width=True)
 
 st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
