@@ -42,14 +42,13 @@ st.markdown("""
         background: #071426;
     }
 
-    .hero-section {
+    .hero-box {
         background: linear-gradient(135deg, #071426 0%, #0a1730 100%);
         padding: 54px 52px;
         border-radius: 14px;
-        color: white;
-        margin-top: 10px;
-        margin-bottom: 42px;
         border-left: 6px solid #2563eb;
+        margin-top: 10px;
+        margin-bottom: 20px;
     }
 
     .hero-eyebrow {
@@ -77,23 +76,15 @@ st.markdown("""
         font-weight: 400;
     }
 
-    .hero-kpi-row {
-        display: flex;
-        gap: 18px;
-        margin-top: 28px;
-        flex-wrap: wrap;
-    }
-
-    .hero-kpi-card {
-        flex: 1;
-        min-width: 220px;
+    .kpi-card {
         background: rgba(255,255,255,0.04);
         border: 1px solid rgba(255,255,255,0.08);
         border-radius: 12px;
         padding: 18px 20px;
+        min-height: 155px;
     }
 
-    .hero-kpi-label {
+    .kpi-label {
         font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 1.5px;
@@ -102,7 +93,7 @@ st.markdown("""
         font-weight: 600;
     }
 
-    .hero-kpi-value {
+    .kpi-value {
         font-size: 28px;
         font-weight: 800;
         color: #f8fafc;
@@ -110,7 +101,7 @@ st.markdown("""
         margin-bottom: 6px;
     }
 
-    .hero-kpi-sub {
+    .kpi-sub {
         font-size: 13px;
         color: rgba(255,255,255,0.72);
         line-height: 1.5;
@@ -167,52 +158,53 @@ st.markdown("""
 # --------------------------------------------------
 # 4. Hero Section
 # --------------------------------------------------
-hero_logo_html = ""
+st.markdown('<div class="hero-box">', unsafe_allow_html=True)
+
 if os.path.exists(logo_path):
-    hero_logo_html = f"""
-    <div style="margin-bottom:18px;">
-        <img src="data:image/png;base64,{__import__('base64').b64encode(open(logo_path, 'rb').read()).decode()}" width="110">
+    st.image(logo_path, width=110)
+
+st.markdown('<div class="hero-eyebrow">Strategic Investment Platform</div>', unsafe_allow_html=True)
+st.markdown('<div class="hero-title">Build Faster. Deliver Earlier. Capture More Value.</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="hero-copy">'
+    'Asia PCE is a precast concrete delivery system designed for multifamily development '
+    'with stronger schedule control, greater predictability, and earlier revenue potential.'
+    '</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# KPI cards: HTML 대신 Streamlit columns로 안정적으로 구성
+k1, k2, k3 = st.columns(3)
+
+with k1:
+    st.markdown("""
+    <div class="kpi-card">
+        <div class="kpi-label">Cost Efficiency</div>
+        <div class="kpi-value">Up to 30%</div>
+        <div class="kpi-sub">Potential reduction in total construction cost under upside scenario assumptions.</div>
     </div>
-    """
+    """, unsafe_allow_html=True)
 
-hero_html = f"""
-<div class="hero-section">
-    {hero_logo_html}
-    <div class="hero-eyebrow">Strategic Investment Platform</div>
-    <div class="hero-title">Build Faster. Deliver Earlier. Capture More Value.</div>
-    <div class="hero-copy">
-        Asia PCE is a precast concrete delivery system designed for multifamily development
-        with stronger schedule control, greater predictability, and earlier revenue potential.
+with k2:
+    st.markdown("""
+    <div class="kpi-card">
+        <div class="kpi-label">Delivery Speed</div>
+        <div class="kpi-value">Up to 7 Months</div>
+        <div class="kpi-sub">Illustrative schedule acceleration compared with conventional delivery methods.</div>
     </div>
+    """, unsafe_allow_html=True)
 
-    <div class="hero-kpi-row">
-        <div class="hero-kpi-card">
-            <div class="hero-kpi-label">Cost Efficiency</div>
-            <div class="hero-kpi-value">Up to 30%</div>
-            <div class="hero-kpi-sub">
-                Potential reduction in total construction cost under upside scenario assumptions.
-            </div>
-        </div>
-
-        <div class="hero-kpi-card">
-            <div class="hero-kpi-label">Delivery Speed</div>
-            <div class="hero-kpi-value">Up to 7 Months</div>
-            <div class="hero-kpi-sub">
-                Illustrative schedule acceleration compared with conventional delivery methods.
-            </div>
-        </div>
-
-        <div class="hero-kpi-card">
-            <div class="hero-kpi-label">Revenue Timing</div>
-            <div class="hero-kpi-value">Earlier Occupancy</div>
-            <div class="hero-kpi-sub">
-                Faster completion may support earlier lease-up and revenue capture.
-            </div>
-        </div>
+with k3:
+    st.markdown("""
+    <div class="kpi-card">
+        <div class="kpi-label">Revenue Timing</div>
+        <div class="kpi-value">Earlier Occupancy</div>
+        <div class="kpi-sub">Faster completion may support earlier lease-up and revenue capture.</div>
     </div>
-</div>
-"""
-st.markdown(hero_html, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
+
 st.caption("Use the scenario-based ROI simulator below to test project economics.")
 
 # --------------------------------------------------
@@ -382,20 +374,8 @@ def render_scenario(name, scenario):
     )
 
     fig_cost = go.Figure(data=[
-        go.Bar(
-            name="Conventional",
-            x=["Total Construction Cost"],
-            y=[total_project_cost],
-            text=[f"${total_project_cost:,.0f}"],
-            textposition="outside"
-        ),
-        go.Bar(
-            name="Asia PCE",
-            x=["Total Construction Cost"],
-            y=[pce_cost],
-            text=[f"${pce_cost:,.0f}"],
-            textposition="outside"
-        )
+        go.Bar(name="Conventional", x=["Total Construction Cost"], y=[total_project_cost], text=[f"${total_project_cost:,.0f}"], textposition="outside"),
+        go.Bar(name="Asia PCE", x=["Total Construction Cost"], y=[pce_cost], text=[f"${pce_cost:,.0f}"], textposition="outside")
     ])
     fig_cost.update_layout(
         barmode="group",
@@ -410,20 +390,8 @@ def render_scenario(name, scenario):
     st.plotly_chart(fig_cost, use_container_width=True)
 
     fig_schedule = go.Figure(data=[
-        go.Bar(
-            name="Conventional",
-            x=["Construction Duration"],
-            y=[conventional_duration],
-            text=[f"{conventional_duration} mo"],
-            textposition="outside"
-        ),
-        go.Bar(
-            name="Asia PCE",
-            x=["Construction Duration"],
-            y=[pce_duration],
-            text=[f"{pce_duration} mo"],
-            textposition="outside"
-        )
+        go.Bar(name="Conventional", x=["Construction Duration"], y=[conventional_duration], text=[f"{conventional_duration} mo"], textposition="outside"),
+        go.Bar(name="Asia PCE", x=["Construction Duration"], y=[pce_duration], text=[f"{pce_duration} mo"], textposition="outside")
     ])
     fig_schedule.update_layout(
         barmode="group",
@@ -485,14 +453,8 @@ with st.form("contact_form"):
         email = st.text_input("Email Address")
 
     with c2:
-        project_state = st.selectbox(
-            "Project State",
-            ["Louisiana", "Texas", "Florida", "Georgia", "Arizona", "Other"]
-        )
-        project_type = st.selectbox(
-            "Project Type",
-            ["Multifamily", "Townhome", "Workforce Housing", "Mixed-Use", "Other"]
-        )
+        project_state = st.selectbox("Project State", ["Louisiana", "Texas", "Florida", "Georgia", "Arizona", "Other"])
+        project_type = st.selectbox("Project Type", ["Multifamily", "Townhome", "Workforce Housing", "Mixed-Use", "Other"])
         est_units = st.number_input("Estimated Unit Count", min_value=1, value=100, step=1)
 
     project_brief = st.text_area("Project Brief")
