@@ -5,96 +5,151 @@ import plotly.graph_objects as go
 # --------------------------------------------------
 # 1. Page Setup
 # --------------------------------------------------
-# 페이지 기본 설정
 st.set_page_config(
     page_title="PMC USA | Capital Efficiency Tool",
     layout="wide"
 )
 
 # --------------------------------------------------
-# 2. Custom CSS
+# 2. Base Paths
 # --------------------------------------------------
-# 전체 디자인 스타일 정의
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+logo_path = os.path.join(BASE_DIR, "PMC Logo.png")
+
+community_img = os.path.join(BASE_DIR, "community_vibe.png.png")
+masterplan_img = os.path.join(BASE_DIR, "masterplan.png.png")
+system_img = os.path.join(BASE_DIR, "system_overview.png (2).png")
+precast_img = os.path.join(BASE_DIR, "precast_progression.png.png")
+assembly_img = os.path.join(BASE_DIR, "mass_assembly.png.png")
+
+# --------------------------------------------------
+# 3. Custom CSS
+# --------------------------------------------------
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
 
+    .stApp {
+        background: #020817;
+        color: #e5e7eb;
+    }
+
     .hero-section {
-        background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
-        padding: 70px 50px;
-        border-radius: 10px;
+        background: linear-gradient(135deg, #071426 0%, #0a1730 100%);
+        padding: 54px 52px;
+        border-radius: 14px;
         color: white;
-        margin-bottom: 40px;
-        border-left: 8px solid #2563eb;
+        margin-top: 10px;
+        margin-bottom: 42px;
+        border-left: 6px solid #2563eb;
+    }
+
+    .hero-eyebrow {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        color: #60a5fa;
+        margin-bottom: 18px;
+        font-weight: 700;
+    }
+
+    .hero-title {
+        font-size: 34px;
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 16px;
+        color: #f8fafc;
+    }
+
+    .hero-copy {
+        font-size: 17px;
+        line-height: 1.8;
+        color: rgba(255,255,255,0.82);
+        max-width: 900px;
+        font-weight: 400;
     }
 
     .section-title {
-        font-size: 24px !important;
-        font-weight: 800;
-        color: #111827;
-        margin: 45px 0 20px 0;
+        font-size: 18px !important;
+        font-weight: 700;
+        color: #e5e7eb;
+        margin: 42px 0 16px 0;
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        border-bottom: 2px solid #e5e7eb;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
         padding-bottom: 10px;
     }
 
     .subtle-text {
-        color: #6b7280;
+        color: #94a3b8;
         font-size: 15px;
-        line-height: 1.7;
+        line-height: 1.8;
     }
 
     .value-box {
-        background: #f8fafc;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
         padding: 22px;
         height: 100%;
     }
 
+    .value-box h4 {
+        color: #f8fafc;
+        margin-bottom: 10px;
+        font-size: 18px;
+    }
+
+    .image-caption {
+        color: #94a3b8;
+        font-size: 13px;
+        margin-top: 6px;
+        margin-bottom: 22px;
+    }
+
     .positioning-box {
         text-align: center;
-        padding: 35px 20px;
-        color: #6b7280;
+        padding: 30px 20px;
+        color: #94a3b8;
         font-style: italic;
-        font-size: 16px;
+        font-size: 15px;
     }
 
     .small-note {
-        color: #6b7280;
+        color: #94a3b8;
         font-size: 13px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# 3. Hero Section
+# 4. Hero Section
 # --------------------------------------------------
-# 상단 핵심 소개 섹션
-st.markdown("""
-<div class="hero-section">
-    <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 4px; color: #60a5fa; margin-bottom: 12px; font-weight: 700;">
-        Strategic Investment Platform
-    </p>
-    <h1 style="font-size: 46px; font-weight: 800; margin-bottom: 18px; line-height: 1.1;">
-        Build Faster. Deliver Earlier. Capture More Value.
-    </h1>
-    <p style="font-size: 18px; font-weight: 300; max-width: 920px; line-height: 1.7; opacity: 0.95;">
-        Asia PCE delivers faster multifamily development through a precast concrete system
-        designed to reduce schedule risk, improve quality control, and accelerate revenue generation.
-    </p>
-</div>
-""", unsafe_allow_html=True)
+st.markdown('<div class="hero-section">', unsafe_allow_html=True)
+
+if os.path.exists(logo_path):
+    st.image(logo_path, width=110)
+
+st.markdown('<div class="hero-eyebrow">Strategic Investment Platform</div>', unsafe_allow_html=True)
+st.markdown('<div class="hero-title">Build Faster. Deliver Earlier. Capture More Value.</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="hero-copy">'
+    'Asia PCE is a precast concrete delivery system designed for multifamily development '
+    'with stronger schedule control, greater predictability, and earlier revenue potential.'
+    '</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 # --------------------------------------------------
-# 4. About Section
+# 5. About Section
 # --------------------------------------------------
-# 서비스 설명 섹션
 st.markdown('<p class="section-title">About Asia PCE</p>', unsafe_allow_html=True)
 
 col_about1, col_about2, col_about3 = st.columns(3)
@@ -114,7 +169,7 @@ with col_about2:
     <div class="value-box">
         <h4>Greater Predictability</h4>
         <p class="subtle-text">
-            A system-based delivery approach improves consistency across manufacturing, installation, and project execution.
+            A system-based delivery approach improves consistency across manufacturing, installation, and execution.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -124,7 +179,7 @@ with col_about3:
     <div class="value-box">
         <h4>Earlier Revenue Capture</h4>
         <p class="subtle-text">
-            Faster project delivery may allow earlier occupancy, lease-up, and revenue generation compared with conventional methods.
+            Faster delivery may enable earlier occupancy, lease-up, and revenue generation compared with conventional methods.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -138,34 +193,65 @@ where speed, quality, and capital efficiency matter.
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# 5. Visual Assets Section
+# 6. Visual Assets Section
 # --------------------------------------------------
-# 이미지 자산 표시 섹션
 st.markdown('<p class="section-title">Technical Design & Visual Assets</p>', unsafe_allow_html=True)
 
-# assets 폴더 기준으로 이미지 검색
-image_dir = "assets"
-image_files = []
+# 디버그 출력
+with st.expander("Image Debug Check", expanded=False):
+    st.write("Logo exists:", os.path.exists(logo_path))
+    st.write("Community exists:", os.path.exists(community_img))
+    st.write("Masterplan exists:", os.path.exists(masterplan_img))
+    st.write("System exists:", os.path.exists(system_img))
+    st.write("Precast exists:", os.path.exists(precast_img))
+    st.write("Assembly exists:", os.path.exists(assembly_img))
 
-if os.path.exists(image_dir):
-    image_files = sorted([
-        os.path.join(image_dir, f)
-        for f in os.listdir(image_dir)
-        if f.lower().endswith((".png", ".jpg", ".jpeg", ".webp"))
-    ])
-
-if image_files:
-    cols = st.columns(3)
-    for idx, img in enumerate(image_files[:6]):
-        with cols[idx % 3]:
-            st.image(img, use_container_width=True)
+# 1) 대표 이미지
+if os.path.exists(community_img):
+    st.image(community_img, use_container_width=True)
+    st.markdown('<div class="image-caption">Community Lifestyle Rendering</div>', unsafe_allow_html=True)
 else:
-    st.info("No visual assets found. Add project images to the 'assets' folder to display them here.")
+    st.warning("Community image not found.")
+
+# 2) 전략/개발 비전
+st.markdown("### Development Vision")
+col1, col2 = st.columns(2)
+
+with col1:
+    if os.path.exists(masterplan_img):
+        st.image(masterplan_img, use_container_width=True)
+        st.markdown('<div class="image-caption">200-Unit Master Plan Overview</div>', unsafe_allow_html=True)
+    else:
+        st.warning("Master plan image not found.")
+
+with col2:
+    if os.path.exists(system_img):
+        st.image(system_img, use_container_width=True)
+        st.markdown('<div class="image-caption">System Overview: Foundation, Exterior, Interior, Final Delivery</div>', unsafe_allow_html=True)
+    else:
+        st.warning("System overview image not found.")
+
+# 3) 실행력/시공 이미지
+st.markdown("### Construction Execution")
+col3, col4 = st.columns(2)
+
+with col3:
+    if os.path.exists(precast_img):
+        st.image(precast_img, use_container_width=True)
+        st.markdown('<div class="image-caption">Precast Structural Progression</div>', unsafe_allow_html=True)
+    else:
+        st.warning("Precast progression image not found.")
+
+with col4:
+    if os.path.exists(assembly_img):
+        st.image(assembly_img, use_container_width=True)
+        st.markdown('<div class="image-caption">Mass Assembly Capability</div>', unsafe_allow_html=True)
+    else:
+        st.warning("Mass assembly image not found.")
 
 # --------------------------------------------------
-# 6. Sidebar Inputs
+# 7. Sidebar Inputs
 # --------------------------------------------------
-# ROI 계산용 사용자 입력
 with st.sidebar:
     st.header("Project Inputs")
 
@@ -205,9 +291,8 @@ with st.sidebar:
     st.write("- PMC USA Execution Platform")
 
 # --------------------------------------------------
-# 7. Scenario Definitions
+# 8. Scenario Definitions
 # --------------------------------------------------
-# 시나리오별 절감률 및 공기단축 설정
 scenarios = {
     "Conservative": {"saving_pct": 10, "schedule_gain": 3},
     "Base Case": {"saving_pct": 20, "schedule_gain": 5},
@@ -215,9 +300,8 @@ scenarios = {
 }
 
 # --------------------------------------------------
-# 8. ROI Simulator Section
+# 9. ROI Simulator
 # --------------------------------------------------
-# ROI 시뮬레이터 메인 섹션
 st.markdown('<p class="section-title">Scenario-Based ROI Simulator</p>', unsafe_allow_html=True)
 st.markdown("""
 <p class="subtle-text">
@@ -229,7 +313,6 @@ Conservative, Base Case, and Upside assumptions.
 tab1, tab2, tab3 = st.tabs(["Conservative", "Base Case", "Upside Case"])
 
 def render_scenario(name, scenario):
-    # 시나리오 계산
     saving_pct = scenario["saving_pct"]
     schedule_gain = scenario["schedule_gain"]
 
@@ -239,61 +322,99 @@ def render_scenario(name, scenario):
     total_advantage = construction_savings + early_revenue
 
     pce_duration = max(conventional_duration - schedule_gain, 1)
-
-    # KPI 카드 표시
-    col1, col2, col3 = st.columns(3)
-    col1.metric(
-        "Construction Cost Savings",
-        f"${construction_savings:,.0f}",
-        f"{saving_pct}% vs. baseline"
-    )
-    col2.metric(
-        "Earlier Revenue Capture",
-        f"${early_revenue:,.0f}",
-        f"{schedule_gain} months faster"
-    )
-    col3.metric(
-        "Total Financial Advantage",
-        f"${total_advantage:,.0f}",
-        "Illustrative estimate"
-    )
-
-    # 요약 문장
-    st.markdown(f"""
-    **Executive Summary:** Under the **{name}** scenario, Asia PCE may reduce total project cost by
-    **${construction_savings:,.0f}**, accelerate delivery by **{schedule_gain} months**, and generate
-    approximately **${early_revenue:,.0f}** in earlier revenue capture.
-    """)
-
-    # 차트 1: 공사비 비교
-    conventional_cost = total_project_cost
     pce_cost = total_project_cost - construction_savings
 
+    col_a, col_b, col_c = st.columns(3)
+
+    with col_a:
+        st.metric(
+            "Construction Cost Savings",
+            f"${construction_savings:,.0f}",
+            f"{saving_pct}% vs. baseline"
+        )
+
+    with col_b:
+        st.metric(
+            "Earlier Revenue Capture",
+            f"${early_revenue:,.0f}",
+            f"{schedule_gain} months faster"
+        )
+
+    with col_c:
+        st.metric(
+            "Total Financial Advantage",
+            f"${total_advantage:,.0f}",
+            "Illustrative estimate"
+        )
+
+    st.markdown(
+        f"""
+        **Executive Summary:** Under the **{name}** scenario, Asia PCE may reduce total project cost by
+        **${construction_savings:,.0f}**, accelerate delivery by **{schedule_gain} months**, and generate
+        approximately **${early_revenue:,.0f}** in earlier revenue capture.
+        """
+    )
+
+    # 공사비 비교 차트
     fig_cost = go.Figure(data=[
-        go.Bar(name="Conventional", x=["Total Construction Cost"], y=[conventional_cost], text=[f"${conventional_cost:,.0f}"], textposition="outside"),
-        go.Bar(name="Asia PCE", x=["Total Construction Cost"], y=[pce_cost], text=[f"${pce_cost:,.0f}"], textposition="outside")
+        go.Bar(
+            name="Conventional",
+            x=["Total Construction Cost"],
+            y=[total_project_cost],
+            text=[f"${total_project_cost:,.0f}"],
+            textposition="outside"
+        ),
+        go.Bar(
+            name="Asia PCE",
+            x=["Total Construction Cost"],
+            y=[pce_cost],
+            text=[f"${pce_cost:,.0f}"],
+            textposition="outside"
+        )
     ])
+
     fig_cost.update_layout(
         barmode="group",
-        height=420,
+        height=380,
         margin=dict(l=20, r=20, t=30, b=20),
         yaxis_title="USD",
-        legend_title="Method"
+        legend_title="Method",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(255,255,255,0.02)",
+        font=dict(color="#e5e7eb")
     )
+
     st.plotly_chart(fig_cost, use_container_width=True)
 
-    # 차트 2: 공기 비교
+    # 공기 비교 차트
     fig_schedule = go.Figure(data=[
-        go.Bar(name="Conventional", x=["Construction Duration"], y=[conventional_duration], text=[f"{conventional_duration} mo"], textposition="outside"),
-        go.Bar(name="Asia PCE", x=["Construction Duration"], y=[pce_duration], text=[f"{pce_duration} mo"], textposition="outside")
+        go.Bar(
+            name="Conventional",
+            x=["Construction Duration"],
+            y=[conventional_duration],
+            text=[f"{conventional_duration} mo"],
+            textposition="outside"
+        ),
+        go.Bar(
+            name="Asia PCE",
+            x=["Construction Duration"],
+            y=[pce_duration],
+            text=[f"{pce_duration} mo"],
+            textposition="outside"
+        )
     ])
+
     fig_schedule.update_layout(
         barmode="group",
-        height=420,
+        height=380,
         margin=dict(l=20, r=20, t=30, b=20),
         yaxis_title="Months",
-        legend_title="Method"
+        legend_title="Method",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(255,255,255,0.02)",
+        font=dict(color="#e5e7eb")
     )
+
     st.plotly_chart(fig_schedule, use_container_width=True)
 
 with tab1:
@@ -306,9 +427,8 @@ with tab3:
     render_scenario("Upside Case", scenarios["Upside Case"])
 
 # --------------------------------------------------
-# 9. Assumptions & Exclusions
+# 10. Assumptions & Exclusions
 # --------------------------------------------------
-# 계산 가정 및 제외 항목 표시
 st.markdown('<p class="section-title">Model Assumptions & Exclusions</p>', unsafe_allow_html=True)
 
 col_ass, col_exc = st.columns(2)
@@ -334,9 +454,8 @@ st.caption(
 )
 
 # --------------------------------------------------
-# 10. Lead Capture Section
+# 11. Lead Capture
 # --------------------------------------------------
-# 문의 폼 섹션
 st.markdown('<p class="section-title">Request a Feasibility Review</p>', unsafe_allow_html=True)
 
 with st.form("contact_form"):
@@ -366,9 +485,8 @@ if submitted:
     st.success("Thank you. Your request has been received. A feasibility review representative can follow up based on the information provided.")
 
 # --------------------------------------------------
-# 11. Brand Positioning Statement
+# 12. Brand Positioning
 # --------------------------------------------------
-# 하단 브랜드 포지셔닝 문구
 st.markdown("---")
 st.markdown("""
 <div class="positioning-box">
