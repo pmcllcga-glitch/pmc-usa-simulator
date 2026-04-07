@@ -4,6 +4,8 @@ from datetime import datetime
 
 import streamlit as st
 import plotly.graph_objects as go
+import gspread
+from google.oauth2.service_account import Credentials
 
 # --------------------------------------------------
 # 1. Page Setup
@@ -28,7 +30,7 @@ assembly_img = os.path.join(BASE_DIR, "mass_assembly.png.png")
 csv_path = os.path.join(BASE_DIR, "submissions.csv")
 
 # --------------------------------------------------
-# 3. CSV Save Function
+# 3. Save Helpers
 # --------------------------------------------------
 def save_submission_to_csv(data: dict, file_path: str) -> None:
     file_exists = os.path.exists(file_path)
@@ -51,6 +53,45 @@ def save_submission_to_csv(data: dict, file_path: str) -> None:
             writer.writeheader()
 
         writer.writerow(data)
+
+
+def get_google_worksheet():
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+    ]
+
+    creds = Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=scopes
+    )
+
+    client = gspread.authorize(creds)
+
+    sheet_name = st.secrets["google_sheet"]["sheet_name"]
+    worksheet_name = st.secrets["google_sheet"]["worksheet_name"]
+
+    spreadsheet = client.open(sheet_name)
+    worksheet = spreadsheet.worksheet(worksheet_name)
+    return worksheet
+
+
+def save_submission_to_gsheet(data: dict) -> None:
+    worksheet = get_google_worksheet()
+
+    row = [
+        data["submitted_at_utc"],
+        data["full_name"],
+        data["company_name"],
+        data["email"],
+        data["project_state"],
+        data["project_type"],
+        data["estimated_unit_count"],
+        data["project_brief"],
+    ]
+
+    worksheet.append_row(row, value_input_option="USER_ENTERED")
+
 
 # --------------------------------------------------
 # 4. Custom CSS
@@ -493,7 +534,7 @@ st.caption(
 )
 
 # --------------------------------------------------
-# 12. Lead Capture + CSV Save
+# 12. Lead Capture + CSV + Google Sheets Save
 # --------------------------------------------------
 st.markdown('<p class="section-title">Request a Feasibility Review</p>', unsafe_allow_html=True)
 
@@ -534,11 +575,24 @@ if submitted:
             "project_brief": project_brief.strip(),
         }
 
+        save_results = []
+
         try:
             save_submission_to_csv(submission_data, csv_path)
-            st.success("Thank you. Your request has been received and saved successfully.")
+            save_results.append("CSV")
         except Exception as e:
-            st.error(f"Submission could not be saved: {e}")
+            st.error(f"CSV save failed: {e}")
+
+        try:
+            save_submission_to_gsheet(submission_data)
+            save_results.append("Google Sheets")
+        except Exception as e:
+            st.error(f"Google Sheets save failed: {e}")
+
+        if save_results:
+            st.success(f"Thank you. Your request has been saved to: {', '.join(save_results)}")
+        else:
+            st.error("Submission failed. No destination could be saved.")
 
 # --------------------------------------------------
 # 13. Admin Preview
