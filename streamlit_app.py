@@ -109,13 +109,12 @@ st.markdown("""
     }
 
     .stApp {
-        background: #F5F7FA;
-        color: #0F172A;
+        background: #020817;
+        color: #e5e7eb;
     }
 
     section[data-testid="stSidebar"] {
-        background: #FFFFFF;
-        border-right: 1px solid #E2E8F0;
+        background: #071426;
     }
 
     .brand-banner {
@@ -161,7 +160,7 @@ st.markdown("""
         font-size: 40px;
         line-height: 1.14;
         font-weight: 800;
-        color: #F8FAFC;
+        color: #f8fafc;
         margin-bottom: 16px;
         max-width: 980px;
     }
@@ -177,24 +176,28 @@ st.markdown("""
     .brand-bodycopy {
         font-size: 16px;
         line-height: 1.8;
-        color: #CBD5E1;
+        color: #b8c7dd;
         max-width: 980px;
     }
 
+    .logo-kpi-wrap {
+        margin-top: 18px;
+        margin-bottom: 10px;
+    }
+
     .kpi-card {
-        background: #FFFFFF;
-        border: 1px solid #E2E8F0;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
         border-radius: 12px;
         padding: 18px 20px;
         min-height: 155px;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     }
 
     .kpi-label {
         font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        color: #2563EB;
+        color: #93c5fd;
         margin-bottom: 8px;
         font-weight: 600;
     }
@@ -202,51 +205,50 @@ st.markdown("""
     .kpi-value {
         font-size: 28px;
         font-weight: 800;
-        color: #0F172A;
+        color: #f8fafc;
         line-height: 1.1;
         margin-bottom: 6px;
     }
 
     .kpi-sub {
         font-size: 13px;
-        color: #64748B;
+        color: rgba(255,255,255,0.72);
         line-height: 1.5;
     }
 
     .section-title {
         font-size: 18px !important;
         font-weight: 700;
-        color: #0F172A;
+        color: #e5e7eb;
         margin: 42px 0 16px 0;
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        border-bottom: 1px solid #E2E8F0;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
         padding-bottom: 10px;
     }
 
     .subtle-text {
-        color: #475569;
+        color: #94a3b8;
         font-size: 15px;
         line-height: 1.8;
     }
 
     .value-box {
-        background: #FFFFFF;
-        border: 1px solid #E2E8F0;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
         border-radius: 12px;
         padding: 22px;
         height: 100%;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     }
 
     .value-box h4 {
-        color: #0F172A;
+        color: #f8fafc;
         margin-bottom: 10px;
         font-size: 18px;
     }
 
     .image-caption {
-        color: #64748B;
+        color: #94a3b8;
         font-size: 13px;
         margin-top: 6px;
         margin-bottom: 22px;
@@ -255,17 +257,9 @@ st.markdown("""
     .positioning-box {
         text-align: center;
         padding: 30px 20px;
-        color: #475569;
+        color: #94a3b8;
         font-style: italic;
         font-size: 15px;
-    }
-
-    div[data-testid="stMetric"] {
-        background: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        padding: 14px 16px;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -584,8 +578,8 @@ def render_scenario(name, scenario):
         yaxis_title="USD",
         legend_title="Method",
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="#FFFFFF",
-        font=dict(color="#0F172A")
+        plot_bgcolor="rgba(255,255,255,0.02)",
+        font=dict(color="#e5e7eb")
     )
     st.plotly_chart(fig_cost, use_container_width=True)
 
@@ -612,8 +606,8 @@ def render_scenario(name, scenario):
         yaxis_title="Months",
         legend_title="Method",
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="#FFFFFF",
-        font=dict(color="#0F172A")
+        plot_bgcolor="rgba(255,255,255,0.02)",
+        font=dict(color="#e5e7eb")
     )
     st.plotly_chart(fig_schedule, use_container_width=True)
 
