@@ -289,8 +289,6 @@ banner_html = """
 """
 st.markdown(banner_html, unsafe_allow_html=True)
 
-st.markdown('<div class="logo-kpi-wrap">', unsafe_allow_html=True)
-
 top_left, top_right = st.columns([1, 5])
 
 with top_left:
@@ -327,12 +325,90 @@ with top_right:
         </div>
         """, unsafe_allow_html=True)
 
-st.markdown('</div>', unsafe_allow_html=True)
-
 st.caption("Use the scenario-based ROI simulator below to test project economics.")
 
 # --------------------------------------------------
-# 6. About Section
+# 6. Solutions Section
+# --------------------------------------------------
+st.markdown('<p class="section-title">Solutions</p>', unsafe_allow_html=True)
+
+s1, s2, s3 = st.columns(3)
+
+with s1:
+    st.markdown("""
+    <div class="value-box">
+        <h4>Multifamily</h4>
+        <p class="subtle-text">
+            A branded delivery model for developers seeking faster schedules,
+            stronger predictability, and improved capital efficiency.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with s2:
+    st.markdown("""
+    <div class="value-box">
+        <h4>Townhome</h4>
+        <p class="subtle-text">
+            A system-based construction approach for repeatable, efficient,
+            and scalable residential development.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with s3:
+    st.markdown("""
+    <div class="value-box">
+        <h4>Workforce Housing</h4>
+        <p class="subtle-text">
+            Built for projects where speed, standardization, and controlled
+            delivery matter most.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# --------------------------------------------------
+# 7. How PMC Works Section
+# --------------------------------------------------
+st.markdown('<p class="section-title">How PMC Works</p>', unsafe_allow_html=True)
+
+h1, h2, h3 = st.columns(3)
+
+with h1:
+    st.markdown("""
+    <div class="value-box">
+        <h4>Technology Access</h4>
+        <p class="subtle-text">
+            PMC connects qualified projects to precision-manufactured
+            construction know-how and structured system application.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with h2:
+    st.markdown("""
+    <div class="value-box">
+        <h4>Local Execution Partners</h4>
+        <p class="subtle-text">
+            PMC works through local U.S. partners for project-specific
+            engineering, execution, and delivery support.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with h3:
+    st.markdown("""
+    <div class="value-box">
+        <h4>Delivery Coordination</h4>
+        <p class="subtle-text">
+            PMC functions as a branded coordination platform focused on speed,
+            predictability, and project-level alignment.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# --------------------------------------------------
+# 8. About Section
 # --------------------------------------------------
 st.markdown('<p class="section-title">About Asia PCE</p>', unsafe_allow_html=True)
 
@@ -377,7 +453,7 @@ where speed, quality, and capital efficiency matter.
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# 7. Visual Assets Section
+# 9. Visual Assets Section
 # --------------------------------------------------
 st.markdown('<p class="section-title">Technical Design & Visual Assets</p>', unsafe_allow_html=True)
 
@@ -412,7 +488,7 @@ with col4:
         st.markdown('<div class="image-caption">Mass Assembly Capability</div>', unsafe_allow_html=True)
 
 # --------------------------------------------------
-# 8. Sidebar Inputs
+# 10. Sidebar Inputs
 # --------------------------------------------------
 with st.sidebar:
     st.header("Project Inputs")
@@ -430,7 +506,7 @@ with st.sidebar:
     st.write("- PMC USA Execution Platform")
 
 # --------------------------------------------------
-# 9. Scenario Definitions
+# 11. Scenario Definitions
 # --------------------------------------------------
 scenarios = {
     "Conservative": {"saving_pct": 10, "schedule_gain": 3},
@@ -439,7 +515,7 @@ scenarios = {
 }
 
 # --------------------------------------------------
-# 10. ROI Simulator
+# 12. ROI Simulator
 # --------------------------------------------------
 st.markdown('<p class="section-title">Scenario-Based ROI Simulator</p>', unsafe_allow_html=True)
 st.markdown("""
@@ -543,7 +619,7 @@ with tab3:
     render_scenario("Upside Case", scenarios["Upside Case"])
 
 # --------------------------------------------------
-# 11. Assumptions & Exclusions
+# 13. Assumptions & Exclusions
 # --------------------------------------------------
 st.markdown('<p class="section-title">Model Assumptions & Exclusions</p>', unsafe_allow_html=True)
 
@@ -570,7 +646,7 @@ st.caption(
 )
 
 # --------------------------------------------------
-# 12. Lead Capture + CSV + Google Sheets Save
+# 14. Lead Capture + CSV + Google Sheets Save
 # --------------------------------------------------
 st.markdown('<p class="section-title">Request a Feasibility Review</p>', unsafe_allow_html=True)
 
@@ -645,12 +721,12 @@ if submitted:
             st.error("Submission failed. No destination could be saved.")
 
 # --------------------------------------------------
-# 13. Brand Positioning
+# 15. Brand Positioning
 # --------------------------------------------------
 st.markdown("---")
 st.markdown("""
 <div class="positioning-box">
-    “Asia PCE does not replace the developer, architect, or GC. We provide a precast concrete delivery system
-    that helps existing builders deliver faster and more predictably.”
+    “PMC is not a contractor pitch. It is a branded delivery platform designed to help
+    developers and builders move faster with greater predictability.”
 </div>
 """, unsafe_allow_html=True)
