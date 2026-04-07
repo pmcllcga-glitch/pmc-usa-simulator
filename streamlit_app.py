@@ -74,6 +74,45 @@ st.markdown("""
         font-weight: 400;
     }
 
+    .hero-kpi-row {
+        display: flex;
+        gap: 18px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+    }
+
+    .hero-kpi-card {
+        flex: 1;
+        min-width: 220px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 18px 20px;
+    }
+
+    .hero-kpi-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #93c5fd;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .hero-kpi-value {
+        font-size: 28px;
+        font-weight: 800;
+        color: #f8fafc;
+        line-height: 1.1;
+        margin-bottom: 6px;
+    }
+
+    .hero-kpi-sub {
+        font-size: 13px;
+        color: rgba(255,255,255,0.72);
+        line-height: 1.5;
+    }
+
     .section-title {
         font-size: 18px !important;
         font-weight: 700;
@@ -119,11 +158,6 @@ st.markdown("""
         font-style: italic;
         font-size: 15px;
     }
-
-    .small-note {
-        color: #94a3b8;
-        font-size: 13px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -145,6 +179,32 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+st.markdown(
+    """
+    <div class="hero-kpi-row">
+        <div class="hero-kpi-card">
+            <div class="hero-kpi-label">Cost Efficiency</div>
+            <div class="hero-kpi-value">Up to 30%</div>
+            <div class="hero-kpi-sub">Potential reduction in total construction cost under upside scenario assumptions.</div>
+        </div>
+
+        <div class="hero-kpi-card">
+            <div class="hero-kpi-label">Delivery Speed</div>
+            <div class="hero-kpi-value">Up to 7 Months</div>
+            <div class="hero-kpi-sub">Illustrative schedule acceleration compared with conventional delivery methods.</div>
+        </div>
+
+        <div class="hero-kpi-card">
+            <div class="hero-kpi-label">Revenue Timing</div>
+            <div class="hero-kpi-value">Earlier Occupancy</div>
+            <div class="hero-kpi-sub">Faster completion may support earlier lease-up and revenue capture.</div>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+st.caption("Use the scenario-based ROI simulator below to test project economics.")
 st.markdown('</div>', unsafe_allow_html=True)
 
 # --------------------------------------------------
@@ -197,7 +257,6 @@ where speed, quality, and capital efficiency matter.
 # --------------------------------------------------
 st.markdown('<p class="section-title">Technical Design & Visual Assets</p>', unsafe_allow_html=True)
 
-# 디버그 출력
 with st.expander("Image Debug Check", expanded=False):
     st.write("Logo exists:", os.path.exists(logo_path))
     st.write("Community exists:", os.path.exists(community_img))
@@ -213,7 +272,7 @@ if os.path.exists(community_img):
 else:
     st.warning("Community image not found.")
 
-# 2) 전략/개발 비전
+# 2) Development Vision
 st.markdown("### Development Vision")
 col1, col2 = st.columns(2)
 
@@ -231,7 +290,7 @@ with col2:
     else:
         st.warning("System overview image not found.")
 
-# 3) 실행력/시공 이미지
+# 3) Construction Execution
 st.markdown("### Construction Execution")
 col3, col4 = st.columns(2)
 
@@ -355,7 +414,6 @@ def render_scenario(name, scenario):
         """
     )
 
-    # 공사비 비교 차트
     fig_cost = go.Figure(data=[
         go.Bar(
             name="Conventional",
@@ -383,10 +441,8 @@ def render_scenario(name, scenario):
         plot_bgcolor="rgba(255,255,255,0.02)",
         font=dict(color="#e5e7eb")
     )
-
     st.plotly_chart(fig_cost, use_container_width=True)
 
-    # 공기 비교 차트
     fig_schedule = go.Figure(data=[
         go.Bar(
             name="Conventional",
@@ -414,7 +470,6 @@ def render_scenario(name, scenario):
         plot_bgcolor="rgba(255,255,255,0.02)",
         font=dict(color="#e5e7eb")
     )
-
     st.plotly_chart(fig_schedule, use_container_width=True)
 
 with tab1:
