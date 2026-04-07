@@ -1,4 +1,7 @@
 import os
+import csv
+from datetime import datetime
+
 import streamlit as st
 import plotly.graph_objects as go
 
@@ -22,8 +25,35 @@ system_img = os.path.join(BASE_DIR, "system_overview.png (2).png")
 precast_img = os.path.join(BASE_DIR, "precast_progression.png.png")
 assembly_img = os.path.join(BASE_DIR, "mass_assembly.png.png")
 
+csv_path = os.path.join(BASE_DIR, "submissions.csv")
+
 # --------------------------------------------------
-# 3. Custom CSS
+# 3. CSV Save Function
+# --------------------------------------------------
+def save_submission_to_csv(data: dict, file_path: str) -> None:
+    file_exists = os.path.exists(file_path)
+
+    fieldnames = [
+        "submitted_at_utc",
+        "full_name",
+        "company_name",
+        "email",
+        "project_state",
+        "project_type",
+        "estimated_unit_count",
+        "project_brief",
+    ]
+
+    with open(file_path, mode="a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+
+        if not file_exists:
+            writer.writeheader()
+
+        writer.writerow(data)
+
+# --------------------------------------------------
+# 4. Custom CSS
 # --------------------------------------------------
 st.markdown("""
 <style>
@@ -156,7 +186,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# 4. Hero Section
+# 5. Hero Section
 # --------------------------------------------------
 st.markdown('<div class="hero-box">', unsafe_allow_html=True)
 
@@ -175,7 +205,6 @@ st.markdown(
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# KPI cards: HTML 대신 Streamlit columns로 안정적으로 구성
 k1, k2, k3 = st.columns(3)
 
 with k1:
@@ -208,7 +237,7 @@ with k3:
 st.caption("Use the scenario-based ROI simulator below to test project economics.")
 
 # --------------------------------------------------
-# 5. About Section
+# 6. About Section
 # --------------------------------------------------
 st.markdown('<p class="section-title">About Asia PCE</p>', unsafe_allow_html=True)
 
@@ -253,7 +282,7 @@ where speed, quality, and capital efficiency matter.
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# 6. Visual Assets Section
+# 7. Visual Assets Section
 # --------------------------------------------------
 st.markdown('<p class="section-title">Technical Design & Visual Assets</p>', unsafe_allow_html=True)
 
@@ -306,7 +335,7 @@ with col4:
         st.warning("Mass assembly image not found.")
 
 # --------------------------------------------------
-# 7. Sidebar Inputs
+# 8. Sidebar Inputs
 # --------------------------------------------------
 with st.sidebar:
     st.header("Project Inputs")
@@ -324,7 +353,7 @@ with st.sidebar:
     st.write("- PMC USA Execution Platform")
 
 # --------------------------------------------------
-# 8. Scenario Definitions
+# 9. Scenario Definitions
 # --------------------------------------------------
 scenarios = {
     "Conservative": {"saving_pct": 10, "schedule_gain": 3},
@@ -333,7 +362,7 @@ scenarios = {
 }
 
 # --------------------------------------------------
-# 9. ROI Simulator
+# 10. ROI Simulator
 # --------------------------------------------------
 st.markdown('<p class="section-title">Scenario-Based ROI Simulator</p>', unsafe_allow_html=True)
 st.markdown("""
@@ -374,8 +403,20 @@ def render_scenario(name, scenario):
     )
 
     fig_cost = go.Figure(data=[
-        go.Bar(name="Conventional", x=["Total Construction Cost"], y=[total_project_cost], text=[f"${total_project_cost:,.0f}"], textposition="outside"),
-        go.Bar(name="Asia PCE", x=["Total Construction Cost"], y=[pce_cost], text=[f"${pce_cost:,.0f}"], textposition="outside")
+        go.Bar(
+            name="Conventional",
+            x=["Total Construction Cost"],
+            y=[total_project_cost],
+            text=[f"${total_project_cost:,.0f}"],
+            textposition="outside"
+        ),
+        go.Bar(
+            name="Asia PCE",
+            x=["Total Construction Cost"],
+            y=[pce_cost],
+            text=[f"${pce_cost:,.0f}"],
+            textposition="outside"
+        )
     ])
     fig_cost.update_layout(
         barmode="group",
@@ -390,8 +431,20 @@ def render_scenario(name, scenario):
     st.plotly_chart(fig_cost, use_container_width=True)
 
     fig_schedule = go.Figure(data=[
-        go.Bar(name="Conventional", x=["Construction Duration"], y=[conventional_duration], text=[f"{conventional_duration} mo"], textposition="outside"),
-        go.Bar(name="Asia PCE", x=["Construction Duration"], y=[pce_duration], text=[f"{pce_duration} mo"], textposition="outside")
+        go.Bar(
+            name="Conventional",
+            x=["Construction Duration"],
+            y=[conventional_duration],
+            text=[f"{conventional_duration} mo"],
+            textposition="outside"
+        ),
+        go.Bar(
+            name="Asia PCE",
+            x=["Construction Duration"],
+            y=[pce_duration],
+            text=[f"{pce_duration} mo"],
+            textposition="outside"
+        )
     ])
     fig_schedule.update_layout(
         barmode="group",
@@ -413,7 +466,7 @@ with tab3:
     render_scenario("Upside Case", scenarios["Upside Case"])
 
 # --------------------------------------------------
-# 10. Assumptions & Exclusions
+# 11. Assumptions & Exclusions
 # --------------------------------------------------
 st.markdown('<p class="section-title">Model Assumptions & Exclusions</p>', unsafe_allow_html=True)
 
@@ -440,7 +493,7 @@ st.caption(
 )
 
 # --------------------------------------------------
-# 11. Lead Capture
+# 12. Lead Capture + CSV Save
 # --------------------------------------------------
 st.markdown('<p class="section-title">Request a Feasibility Review</p>', unsafe_allow_html=True)
 
@@ -453,18 +506,55 @@ with st.form("contact_form"):
         email = st.text_input("Email Address")
 
     with c2:
-        project_state = st.selectbox("Project State", ["Louisiana", "Texas", "Florida", "Georgia", "Arizona", "Other"])
-        project_type = st.selectbox("Project Type", ["Multifamily", "Townhome", "Workforce Housing", "Mixed-Use", "Other"])
+        project_state = st.selectbox(
+            "Project State",
+            ["Louisiana", "Texas", "Florida", "Georgia", "Arizona", "Other"]
+        )
+        project_type = st.selectbox(
+            "Project Type",
+            ["Multifamily", "Townhome", "Workforce Housing", "Mixed-Use", "Other"]
+        )
         est_units = st.number_input("Estimated Unit Count", min_value=1, value=100, step=1)
 
     project_brief = st.text_area("Project Brief")
     submitted = st.form_submit_button("Submit Request for Review")
 
 if submitted:
-    st.success("Thank you. Your request has been received. A feasibility review representative can follow up based on the information provided.")
+    if not full_name.strip() or not email.strip():
+        st.error("Please provide at least Full Name and Email Address.")
+    else:
+        submission_data = {
+            "submitted_at_utc": datetime.utcnow().isoformat(),
+            "full_name": full_name.strip(),
+            "company_name": company_name.strip(),
+            "email": email.strip(),
+            "project_state": project_state,
+            "project_type": project_type,
+            "estimated_unit_count": est_units,
+            "project_brief": project_brief.strip(),
+        }
+
+        try:
+            save_submission_to_csv(submission_data, csv_path)
+            st.success("Thank you. Your request has been received and saved successfully.")
+        except Exception as e:
+            st.error(f"Submission could not be saved: {e}")
 
 # --------------------------------------------------
-# 12. Brand Positioning
+# 13. Admin Preview
+# --------------------------------------------------
+with st.expander("Admin Preview: Saved Submissions", expanded=False):
+    if os.path.exists(csv_path):
+        try:
+            with open(csv_path, "r", encoding="utf-8") as f:
+                st.code(f.read())
+        except Exception as e:
+            st.error(f"Could not read saved submissions: {e}")
+    else:
+        st.caption("No submissions saved yet.")
+
+# --------------------------------------------------
+# 14. Brand Positioning
 # --------------------------------------------------
 st.markdown("---")
 st.markdown("""
