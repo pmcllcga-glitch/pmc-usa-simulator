@@ -37,7 +37,7 @@ html, body, [class*="css"] {
 .hero-wrap {
     background: linear-gradient(135deg, #09111f 0%, #13233b 45%, #223a5b 100%);
     color: white;
-    padding: 62px 56px;
+    padding: 52px 52px 58px 52px;
     border-radius: 24px;
     position: relative;
     overflow: hidden;
@@ -58,6 +58,9 @@ html, body, [class*="css"] {
 .hero-inner {
     position: relative;
     z-index: 2;
+}
+.hero-logo-wrap {
+    margin-bottom: 18px;
 }
 .eyebrow {
     text-transform: uppercase;
@@ -277,33 +280,31 @@ def safe_image(path, caption=None):
 # =========================================================
 # HERO
 # =========================================================
-logo_col, hero_col = st.columns([0.10, 0.90], gap="medium")
+st.markdown('<div class="hero-wrap"><div class="hero-inner">', unsafe_allow_html=True)
 
-with logo_col:
-    if os.path.exists("PMC Logo.png"):
-        st.image("PMC Logo.png", width=120)
+st.markdown('<div class="hero-logo-wrap">', unsafe_allow_html=True)
+if os.path.exists("PMC Logo.png"):
+    st.image("PMC Logo.png", width=120)
+st.markdown('</div>', unsafe_allow_html=True)
 
-with hero_col:
-    st.markdown("""
-    <div class="hero-wrap" style="margin-top:0;">
-      <div class="hero-inner">
-        <div class="eyebrow">Engineered for Predictability. Built for Value.</div>
-        <div class="hero-title">A New Standard for Residential Delivery.</div>
-        <div class="hero-subtitle">
-          PMC is a branded delivery platform that connects precision-manufactured construction systems
-          with qualified U.S. execution partners.
-        </div>
-        <div class="hero-note">
-          Designed to improve delivery speed, predictability, and capital efficiency across multifamily,
-          townhome, workforce housing, and project-specific residential applications.
-          <br><br>
-          <strong>PMC is not a general contractor.</strong>
-          PMC helps structure project delivery by aligning technical system access, project applicability,
-          and localized execution capacity.
-        </div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+st.markdown("""
+<div class="eyebrow">Engineered for Predictability. Built for Value.</div>
+<div class="hero-title">A New Standard for Residential Delivery.</div>
+<div class="hero-subtitle">
+  PMC is a branded delivery platform that connects precision-manufactured construction systems
+  with qualified U.S. execution partners.
+</div>
+<div class="hero-note">
+  Designed to improve delivery speed, predictability, and capital efficiency across multifamily,
+  townhome, workforce housing, and project-specific residential applications.
+  <br><br>
+  <strong>PMC is not a general contractor.</strong>
+  PMC helps structure project delivery by aligning technical system access, project applicability,
+  and localized execution capacity.
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown('</div></div>', unsafe_allow_html=True)
 
 cta1, cta2, _ = st.columns([1.3, 1.3, 5])
 with cta1:
@@ -473,18 +474,64 @@ with img4:
 st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
 
 # =========================================================
-# NEW IMAGE
+# PRECAST MODULAR CONSTRUCTION SHOWCASE
 # =========================================================
 st.markdown('<div class="section-title">Precast Modular Construction Showcase</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="section-subtitle">A visual reference illustrating precast modular assembly logic, controlled factory coordination, and scalable system-based residential delivery potential.</div>',
+    '<div class="section-subtitle">A visual reference set illustrating assembly logic, modular unit formation, configurability, and interior productization within a precast-based residential delivery model.</div>',
     unsafe_allow_html=True
 )
 
-safe_image(
-    "Precast modular construction showcase.png",
-    "<strong>Precast Modular Construction Showcase</strong><br>Illustrative reference showing precast modular assembly logic, productized unit formation, and factory-based quality control."
-)
+# 1행: 2개
+r1c1, r1c2 = st.columns(2)
+with r1c1:
+    safe_image(
+        "factory_assembly_main.png",
+        "<strong>Factory Assembly Logic</strong><br>Exploded assembly sequence illustrating how major structural elements can be coordinated in a controlled manufacturing environment."
+    )
+with r1c2:
+    safe_image(
+        "modular_plan_cutaway.png",
+        "<strong>Integrated Modular Planning</strong><br>Cutaway view showing how structure, circulation, living space, and utility zones can be organized within a productized housing unit."
+    )
+
+# 2행: 3개
+r2c1, r2c2, r2c3 = st.columns(3)
+with r2c1:
+    safe_image(
+        "factory_before_after.png",
+        "<strong>Assembly to Enclosure Transition</strong><br>Reference comparing open assembly condition and enclosed modular unit condition within a manufacturing setting."
+    )
+with r2c2:
+    safe_image(
+        "top_view_module.png",
+        "<strong>Top-View Configurability</strong><br>Overhead reference showing internal wall organization and modular layout logic for repeatable unit planning."
+    )
+with r2c3:
+    safe_image(
+        "factory_module_frame.png",
+        "<strong>Factory Module Formation</strong><br>Illustrative view of a structural module being formed within a high-control production environment."
+    )
+
+# 3행: 인테리어 2장 붙여서
+r3c1, r3c2 = st.columns(2)
+with r3c1:
+    safe_image(
+        "interior_living_view.png",
+        "<strong>Interior Productization</strong><br>Illustrative residential interior showing how factory-led completion can support quality consistency, user experience, and IoT-ready living environments."
+    )
+with r3c2:
+    safe_image(
+        "interior_kitchen_view.png",
+        "<strong>Productized Interior Environment</strong><br>Illustrative residential interior showing spatial quality, finished surfaces, and IoT-oriented living potential."
+    )
+
+st.markdown("""
+<div class="callout">
+<strong>Why these references matter:</strong><br>
+These visuals are not presented as final project deliverables. They are reference images used to support early-stage discussion around modular logic, housing productization, quality control, interior completion potential, and scalable delivery pathways.
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
 
