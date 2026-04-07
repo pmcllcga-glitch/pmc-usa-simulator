@@ -1,12 +1,12 @@
-import streamlit as st
-import pandas as pd
-from datetime import datetime
-import plotly.graph_objects as go
 import os
 import csv
 from pathlib import Path
+from datetime import datetime
 
-# Google Sheets
+import streamlit as st
+import pandas as pd
+import plotly.graph_objects as go
+
 import gspread
 from google.oauth2.service_account import Credentials
 
@@ -37,7 +37,7 @@ SHEET_HEADERS = [
 ]
 
 # =========================================================
-# CUSTOM CSS
+# CSS
 # =========================================================
 st.markdown("""
 <style>
@@ -56,7 +56,6 @@ html, body, [class*="css"] {
     padding-right: 1rem;
 }
 
-/* Hero */
 .hero-wrap {
     background: linear-gradient(135deg, #09111f 0%, #13233b 45%, #223a5b 100%);
     color: white;
@@ -81,25 +80,6 @@ html, body, [class*="css"] {
 .hero-inner {
     position: relative;
     z-index: 2;
-}
-.hero-logo-card {
-    width: 126px;
-    height: 126px;
-    background: rgba(255,255,255,0.96);
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.12);
-    margin-bottom: 18px;
-    overflow: hidden;
-}
-.hero-logo-card img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    display: block;
 }
 .eyebrow {
     text-transform: uppercase;
@@ -131,7 +111,6 @@ html, body, [class*="css"] {
     max-width: 1220px;
 }
 
-/* Typography */
 .section-title {
     font-size: 36px;
     font-weight: 800;
@@ -155,7 +134,6 @@ html, body, [class*="css"] {
 .spacer-sm { height: 24px; }
 .spacer-md { height: 40px; }
 
-/* Cards */
 .info-card {
     background: white;
     border: 1px solid #e5e7eb;
@@ -207,7 +185,6 @@ html, body, [class*="css"] {
     font-size: 17px;
 }
 
-/* Labels */
 label, .stTextInput label, .stNumberInput label, .stDateInput label, .stTextArea label, .stSelectbox label {
     color: #111827 !important;
     font-weight: 700 !important;
@@ -221,7 +198,6 @@ div[data-testid="stWidgetLabel"] label p {
     font-size: 16px !important;
 }
 
-/* Inputs */
 .stTextInput input,
 .stNumberInput input,
 .stDateInput input,
@@ -260,7 +236,6 @@ div[data-baseweb="select"] span {
     color: #ffffff !important;
 }
 
-/* Buttons */
 .stButton > button,
 div[data-testid="stFormSubmitButton"] button {
     background: linear-gradient(90deg, #09111f 0%, #111827 100%);
@@ -276,7 +251,6 @@ div[data-testid="stFormSubmitButton"] button:hover {
     border: 1px solid #0f172a !important;
     color: white !important;
 }
-
 img {
     border-radius: 14px;
 }
@@ -294,7 +268,7 @@ def card(title: str, body: str):
             <p>{body}</p>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 def kpi_card(title: str, body: str):
@@ -305,10 +279,10 @@ def kpi_card(title: str, body: str):
             <div class="kpi-text">{body}</div>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
-def safe_image(path, caption=None):
+def safe_image(path: str, caption: str | None = None):
     if os.path.exists(path):
         st.image(path, use_container_width=True)
         if caption:
@@ -317,34 +291,19 @@ def safe_image(path, caption=None):
         st.warning(f"Image not found: {path}")
 
 def get_gsheet_client():
-    """
-    Expects Streamlit secrets in one of these shapes:
-    1) st.secrets["gcp_service_account"] = {...service account json...}
-    2) top-level service account keys directly in st.secrets
-    """
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive",
     ]
-
     if "gcp_service_account" in st.secrets:
         service_account_info = dict(st.secrets["gcp_service_account"])
     else:
-        # fallback: assume the whole secrets object is the service account block
         service_account_info = dict(st.secrets)
 
     creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
     return gspread.authorize(creds)
 
 def save_to_google_sheets(record: dict):
-    """
-    Expects one of:
-    - st.secrets["google_sheets"]["spreadsheet_name"]
-    - st.secrets["google_sheets"]["worksheet_name"] (optional)
-    OR
-    - st.secrets["spreadsheet_name"]
-    - st.secrets["worksheet_name"] (optional)
-    """
     gc = get_gsheet_client()
 
     spreadsheet_name = None
@@ -364,20 +323,14 @@ def save_to_google_sheets(record: dict):
     ws = sh.worksheet(worksheet_name)
 
     existing_header = ws.row_values(1)
-    if existing_header != SHEET_HEADERS:
-        if not existing_header:
-            ws.append_row(SHEET_HEADERS)
-        else:
-            # If a sheet exists but headers differ, do not overwrite silently.
-            # User can fix manually.
-            pass
+    if not existing_header:
+        ws.append_row(SHEET_HEADERS)
 
     row = [record.get(col, "") for col in SHEET_HEADERS]
     ws.append_row(row, value_input_option="USER_ENTERED")
 
 def save_to_csv_backup(record: dict, csv_path: str = CSV_BACKUP_PATH):
     file_exists = Path(csv_path).exists()
-
     with open(csv_path, "a", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=SHEET_HEADERS)
         if not file_exists:
@@ -387,17 +340,11 @@ def save_to_csv_backup(record: dict, csv_path: str = CSV_BACKUP_PATH):
 # =========================================================
 # HERO
 # =========================================================
-hero_logo_col, hero_text_col = st.columns([0.14, 0.86], gap="medium")
+hero_logo_col, hero_text_col = st.columns([0.12, 0.88], gap="medium")
 
 with hero_logo_col:
     if os.path.exists("PMC Logo.png"):
-        st.markdown('<div class="hero-logo-card">', unsafe_allow_html=True)
-        file_url = "PMC Logo.png"
-        st.markdown(
-            f'<img src="{file_url}" style="width:100%;height:100%;object-fit:contain;border-radius:12px;" />',
-            unsafe_allow_html=True,
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.image("PMC Logo.png", width=120)
 
 with hero_text_col:
     st.markdown("""
@@ -435,7 +382,7 @@ st.markdown('<div class="spacer-sm"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-title">Strategic Value</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="section-subtitle">PMC is designed to help developers, execution partners, and stakeholders evaluate a more structured path to residential delivery.</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 k1, k2, k3, k4 = st.columns(4)
@@ -456,7 +403,7 @@ st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-title">Solutions</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="section-subtitle">PMC is focused on residential project types where delivery discipline, repeatability, and structured coordination can create strategic value.</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 s1, s2, s3 = st.columns(3)
@@ -475,7 +422,7 @@ st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-title">How PMC Works</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="section-subtitle">PMC is structured as a delivery platform. The goal is not to replace local builders, but to create a more organized framework for applying precision-manufactured residential systems in the U.S. market.</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 w1, w2, w3, w4, w5 = st.columns(5)
@@ -507,7 +454,7 @@ st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-title">For Execution Partners</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="section-subtitle">PMC is intended to work with local U.S. execution partners, not against them.</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 ep1, ep2 = st.columns(2)
@@ -532,7 +479,7 @@ st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-title">Technology Foundation</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="section-subtitle">PMC’s platform direction is supported by precision-manufactured construction logic, system coordination, modular planning, and productized residential delivery potential.</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 t1, t2 = st.columns([0.9, 1.3], gap="large")
@@ -543,12 +490,12 @@ with t1:
     )
     st.markdown(
         '<div class="caption">This section should reinforce credibility without making PMC appear to be a simple overseas sales agent.</div>',
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 with t2:
     safe_image(
         "system_overview.png (2).png",
-        "<strong>System Overview</strong><br>Illustrative technical coordination reference for system application and delivery logic."
+        "<strong>System Overview</strong><br>Illustrative technical coordination reference for system application and delivery logic.",
     )
 
 st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
@@ -559,31 +506,31 @@ st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-title">Technical Design & Visual Assets</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="section-subtitle">These visuals support planning logic, deployment sequence, and residential end-state positioning.</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 img1, img2 = st.columns(2)
 with img1:
     safe_image(
         "masterplan.png.png",
-        "<strong>Master Planning Logic</strong><br>Illustrative planning and layout reference for repeatable residential deployment."
+        "<strong>Master Planning Logic</strong><br>Illustrative planning and layout reference for repeatable residential deployment.",
     )
 with img2:
     safe_image(
         "community_vibe.png.png",
-        "<strong>Residential End-State Visualization</strong><br>Conceptual view of community positioning and lifestyle outcome."
+        "<strong>Residential End-State Visualization</strong><br>Conceptual view of community positioning and lifestyle outcome.",
     )
 
 img3, img4 = st.columns(2)
 with img3:
     safe_image(
         "precast_progression.png.png",
-        "<strong>Assembly Sequence</strong><br>Indicative visual reference for staged implementation and sequencing."
+        "<strong>Assembly Sequence</strong><br>Indicative visual reference for staged implementation and sequencing.",
     )
 with img4:
     safe_image(
         "mass_assembly.png.png",
-        "<strong>Scalable Deployment</strong><br>Illustrative reference for expanded field deployment and repeatable execution."
+        "<strong>Scalable Deployment</strong><br>Illustrative reference for expanded field deployment and repeatable execution.",
     )
 
 st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
@@ -594,12 +541,12 @@ st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-title">Precast Modular Construction Showcase</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="section-subtitle">A visual reference set illustrating assembly logic, modular unit formation, configurability, and interior productization within a precast-based residential delivery model.</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 safe_image(
     "Precast modular construction showcase.png",
-    "<strong>Precast Modular Construction Showcase</strong><br>Composite reference image showing assembly logic, modular planning, enclosure formation, and interior productization."
+    "<strong>Precast Modular Construction Showcase</strong><br>Composite reference image showing assembly logic, modular planning, enclosure formation, and interior productization.",
 )
 
 st.markdown("""
@@ -617,7 +564,7 @@ st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-title">ROI Simulator</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="section-subtitle">This tool is intended for preliminary discussion only. It is not a proposal, guarantee, or final underwriting model.</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 with st.expander("Open ROI Simulator", expanded=True):
@@ -689,7 +636,7 @@ st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-title">Request a Feasibility Review</div>', unsafe_allow_html=True)
 st.markdown(
     '<div class="section-subtitle">Use this form to start a preliminary discussion regarding project fit, delivery structure, and potential implementation pathways.</div>',
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 with st.form("feasibility_form"):
@@ -732,18 +679,16 @@ with st.form("feasibility_form"):
         }
 
         sheets_ok = False
-        sheets_error = None
         csv_ok = False
+        sheets_error = None
         csv_error = None
 
-        # Always try CSV backup
         try:
             save_to_csv_backup(record)
             csv_ok = True
         except Exception as e:
             csv_error = str(e)
 
-        # Then try Google Sheets
         try:
             save_to_google_sheets(record)
             sheets_ok = True
@@ -752,12 +697,14 @@ with st.form("feasibility_form"):
 
         if sheets_ok and csv_ok:
             st.success("Thank you. Your feasibility review request has been saved to Google Sheets and backed up locally.")
-        elif sheets_ok and not csv_ok:
+        elif sheets_ok:
             st.success("Thank you. Your feasibility review request has been saved to Google Sheets.")
-            st.info(f"CSV backup was not created: {csv_error}")
-        elif not sheets_ok and csv_ok:
+            if csv_error:
+                st.info(f"CSV backup was not created: {csv_error}")
+        elif csv_ok:
             st.warning("Your request was saved to local CSV backup, but Google Sheets sync did not complete.")
-            st.info(f"Google Sheets error: {sheets_error}")
+            if sheets_error:
+                st.info(f"Google Sheets error: {sheets_error}")
         else:
             st.error("Your request could not be saved. Please check your Streamlit secrets and file permissions.")
             if sheets_error:
