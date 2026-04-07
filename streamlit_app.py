@@ -267,29 +267,27 @@ st.markdown("""
 # --------------------------------------------------
 # 5. Brand Banner + Logo + KPI Section
 # --------------------------------------------------
-st.markdown("""
+banner_html = """
 <div class="brand-banner">
     <div class="brand-banner-inner">
         <div class="brand-topline">
             Engineered for Predictability. Built for Value.
         </div>
-
         <div class="brand-headline">
             A New Standard for Residential Delivery.
         </div>
-
         <div class="brand-subheadline">
             PMC is a branded delivery platform that connects precision-manufactured
             construction systems with local U.S. execution partners.
         </div>
-
         <div class="brand-bodycopy">
             Designed to improve speed, predictability, and capital efficiency across
             multifamily, townhome, and workforce housing.
         </div>
     </div>
 </div>
-""", unsafe_allow_html=True)
+"""
+st.markdown(banner_html, unsafe_allow_html=True)
 
 st.markdown('<div class="logo-kpi-wrap">', unsafe_allow_html=True)
 
