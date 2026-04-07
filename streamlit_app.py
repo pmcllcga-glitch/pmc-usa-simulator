@@ -15,7 +15,7 @@ from google.oauth2.service_account import Credentials
 # =========================================================
 st.set_page_config(
     page_title="PMC | A New Standard for Residential Delivery",
-    page_icon="PMC Logo.png",
+    page_icon="🏗️",
     layout="wide"
 )
 
@@ -56,6 +56,7 @@ html, body, [class*="css"] {
     padding-right: 1rem;
 }
 
+/* Hero */
 .hero-wrap {
     background: linear-gradient(135deg, #09111f 0%, #13233b 45%, #223a5b 100%);
     color: white;
@@ -111,6 +112,7 @@ html, body, [class*="css"] {
     max-width: 1220px;
 }
 
+/* Typography */
 .section-title {
     font-size: 36px;
     font-weight: 800;
@@ -134,6 +136,7 @@ html, body, [class*="css"] {
 .spacer-sm { height: 24px; }
 .spacer-md { height: 40px; }
 
+/* Cards */
 .info-card {
     background: white;
     border: 1px solid #e5e7eb;
@@ -185,6 +188,7 @@ html, body, [class*="css"] {
     font-size: 17px;
 }
 
+/* Labels */
 label, .stTextInput label, .stNumberInput label, .stDateInput label, .stTextArea label, .stSelectbox label {
     color: #111827 !important;
     font-weight: 700 !important;
@@ -198,6 +202,7 @@ div[data-testid="stWidgetLabel"] label p {
     font-size: 16px !important;
 }
 
+/* Inputs */
 .stTextInput input,
 .stNumberInput input,
 .stDateInput input,
@@ -236,6 +241,7 @@ div[data-baseweb="select"] span {
     color: #ffffff !important;
 }
 
+/* Buttons */
 .stButton > button,
 div[data-testid="stFormSubmitButton"] button {
     background: linear-gradient(90deg, #09111f 0%, #111827 100%);
@@ -295,6 +301,7 @@ def get_gsheet_client():
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive",
     ]
+
     if "gcp_service_account" in st.secrets:
         service_account_info = dict(st.secrets["gcp_service_account"])
     else:
@@ -340,33 +347,26 @@ def save_to_csv_backup(record: dict, csv_path: str = CSV_BACKUP_PATH):
 # =========================================================
 # HERO
 # =========================================================
-hero_logo_col, hero_text_col = st.columns([0.12, 0.88], gap="medium")
-
-with hero_logo_col:
-    if os.path.exists("PMC Logo.png"):
-        st.image("PMC Logo.png", width=120)
-
-with hero_text_col:
-    st.markdown("""
-    <div class="hero-wrap" style="margin-top:0;">
-      <div class="hero-inner">
-        <div class="eyebrow">Engineered for Predictability. Built for Value.</div>
-        <div class="hero-title">A New Standard for Residential Delivery.</div>
-        <div class="hero-subtitle">
-          PMC is a branded delivery platform that connects precision-manufactured construction systems
-          with qualified U.S. execution partners.
-        </div>
-        <div class="hero-note">
-          Designed to improve delivery speed, predictability, and capital efficiency across multifamily,
-          townhome, workforce housing, and project-specific residential applications.
-          <br><br>
-          <strong>PMC is not a general contractor.</strong>
-          PMC helps structure project delivery by aligning technical system access, project applicability,
-          and localized execution capacity.
-        </div>
-      </div>
+st.markdown("""
+<div class="hero-wrap" style="margin-top:0;">
+  <div class="hero-inner">
+    <div class="eyebrow">Engineered for Predictability. Built for Value.</div>
+    <div class="hero-title">A New Standard for Residential Delivery.</div>
+    <div class="hero-subtitle">
+      PMC is a branded delivery platform that connects precision-manufactured construction systems
+      with qualified U.S. execution partners.
     </div>
-    """, unsafe_allow_html=True)
+    <div class="hero-note">
+      Designed to improve delivery speed, predictability, and capital efficiency across multifamily,
+      townhome, workforce housing, and project-specific residential applications.
+      <br><br>
+      <strong>PMC is not a general contractor.</strong>
+      PMC helps structure project delivery by aligning technical system access, project applicability,
+      and localized execution capacity.
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
 cta1, cta2, _ = st.columns([1.3, 1.3, 5])
 with cta1:
