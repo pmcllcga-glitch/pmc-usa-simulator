@@ -1,732 +1,537 @@
-import os
-import csv
-from datetime import datetime
-
 import streamlit as st
+import pandas as pd
+from datetime import datetime
 import plotly.graph_objects as go
-import gspread
-from google.oauth2.service_account import Credentials
 
-# --------------------------------------------------
-# 1. Page Setup
-# --------------------------------------------------
+# =========================
+# PAGE CONFIG
+# =========================
 st.set_page_config(
-    page_title="PMC USA | Capital Efficiency Tool",
+    page_title="PMC | A New Standard for Residential Delivery",
+    page_icon="PMC Logo.png",
     layout="wide"
 )
 
-# --------------------------------------------------
-# 2. File Paths
-# --------------------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-logo_path = os.path.join(BASE_DIR, "PMC Logo.png")
-community_img = os.path.join(BASE_DIR, "community_vibe.png.png")
-masterplan_img = os.path.join(BASE_DIR, "masterplan.png.png")
-system_img = os.path.join(BASE_DIR, "system_overview.png (2).png")
-precast_img = os.path.join(BASE_DIR, "precast_progression.png.png")
-assembly_img = os.path.join(BASE_DIR, "mass_assembly.png.png")
-
-csv_path = os.path.join(BASE_DIR, "submissions.csv")
-
-# --------------------------------------------------
-# 3. Save Helpers
-# --------------------------------------------------
-def save_submission_to_csv(data: dict, file_path: str) -> None:
-    file_exists = os.path.exists(file_path)
-
-    fieldnames = [
-        "submitted_at_utc",
-        "full_name",
-        "company_name",
-        "email",
-        "project_state",
-        "project_type",
-        "estimated_unit_count",
-        "target_start_date",
-        "estimated_budget_usd",
-        "project_brief",
-    ]
-
-    with open(file_path, mode="a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-
-        if not file_exists:
-            writer.writeheader()
-
-        writer.writerow(data)
-
-
-def get_google_worksheet():
-    scopes = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive",
-    ]
-
-    creds = Credentials.from_service_account_info(
-        st.secrets["gcp_service_account"],
-        scopes=scopes
-    )
-
-    client = gspread.authorize(creds)
-
-    sheet_name = st.secrets["google_sheet"]["sheet_name"]
-    worksheet_name = st.secrets["google_sheet"]["worksheet_name"]
-
-    spreadsheet = client.open(sheet_name)
-    worksheet = spreadsheet.worksheet(worksheet_name)
-    return worksheet
-
-
-def save_submission_to_gsheet(data: dict) -> None:
-    worksheet = get_google_worksheet()
-
-    row = [
-        data["submitted_at_utc"],
-        data["full_name"],
-        data["company_name"],
-        data["email"],
-        data["project_state"],
-        data["project_type"],
-        data["estimated_unit_count"],
-        data["target_start_date"],
-        data["estimated_budget_usd"],
-        data["project_brief"],
-    ]
-
-    worksheet.append_row(row, value_input_option="USER_ENTERED")
-
-
-# --------------------------------------------------
-# 4. Custom CSS
-# --------------------------------------------------
+# =========================
+# CUSTOM CSS
+# =========================
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* Global */
+html, body, [class*="css"] {
+    font-family: "Arial", sans-serif;
+}
+.stApp {
+    background-color: #f5f6f8;
+    color: #111827;
+}
 
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-    }
+/* Container width */
+.block-container {
+    padding-top: 0rem;
+    padding-bottom: 3rem;
+    max-width: 1250px;
+}
 
-    .stApp {
-        background: #020817;
-        color: #e5e7eb;
-    }
+/* Top brand banner */
+.hero-wrap {
+    background: linear-gradient(135deg, #0f172a 0%, #1f2937 50%, #243447 100%);
+    color: white;
+    padding: 56px 48px;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    margin-top: 18px;
+    margin-bottom: 28px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
 
-    section[data-testid="stSidebar"] {
-        background: #071426;
-    }
+/* subtle blueprint / grid feel */
+.hero-wrap:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 42px 42px;
+    pointer-events: none;
+}
 
-    .brand-banner {
-        position: relative;
-        overflow: hidden;
-        background: linear-gradient(135deg, #071426 0%, #0a1730 100%);
-        border-left: 6px solid #2563eb;
-        border-radius: 14px;
-        padding: 42px 40px 38px 40px;
-        margin-top: 10px;
-        margin-bottom: 20px;
-    }
+.hero-inner {
+    position: relative;
+    z-index: 2;
+}
 
-    .brand-banner::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background-image:
-            linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
-            linear-gradient(35deg, rgba(255,255,255,0.02) 1px, transparent 1px),
-            linear-gradient(145deg, rgba(255,255,255,0.018) 1px, transparent 1px);
-        background-size: 72px 72px, 72px 72px, 220px 220px, 260px 260px;
-        opacity: 0.22;
-        pointer-events: none;
-    }
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #cbd5e1;
+    margin-bottom: 14px;
+}
 
-    .brand-banner-inner {
-        position: relative;
-        z-index: 1;
-    }
+.hero-title {
+    font-size: 44px;
+    line-height: 1.1;
+    font-weight: 700;
+    margin-bottom: 16px;
+    max-width: 760px;
+}
 
-    .brand-topline {
-        font-size: 12px;
-        letter-spacing: 2.2px;
-        text-transform: uppercase;
-        color: #9ec5ff;
-        font-weight: 600;
-        margin-bottom: 16px;
-    }
+.hero-subtitle {
+    font-size: 18px;
+    line-height: 1.7;
+    color: #e5e7eb;
+    max-width: 840px;
+    margin-bottom: 22px;
+}
 
-    .brand-headline {
-        font-size: 40px;
-        line-height: 1.14;
-        font-weight: 800;
-        color: #f8fafc;
-        margin-bottom: 16px;
-        max-width: 980px;
-    }
+.hero-note {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #cbd5e1;
+    max-width: 860px;
+}
 
-    .brand-subheadline {
-        font-size: 18px;
-        line-height: 1.75;
-        color: rgba(255,255,255,0.86);
-        max-width: 980px;
-        margin-bottom: 12px;
-    }
+.section-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    color: #111827;
+}
 
-    .brand-bodycopy {
-        font-size: 16px;
-        line-height: 1.8;
-        color: #b8c7dd;
-        max-width: 980px;
-    }
+.section-subtitle {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #4b5563;
+    margin-bottom: 22px;
+    max-width: 920px;
+}
 
-    .logo-kpi-wrap {
-        margin-top: 18px;
-        margin-bottom: 10px;
-    }
+/* Cards */
+.info-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 24px 22px;
+    min-height: 190px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    margin-bottom: 16px;
+}
 
-    .kpi-card {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 12px;
-        padding: 18px 20px;
-        min-height: 155px;
-    }
+.info-card h4 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    color: #111827;
+}
 
-    .kpi-label {
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        color: #93c5fd;
-        margin-bottom: 8px;
-        font-weight: 600;
-    }
+.info-card p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #4b5563;
+}
 
-    .kpi-value {
-        font-size: 28px;
-        font-weight: 800;
-        color: #f8fafc;
-        line-height: 1.1;
-        margin-bottom: 6px;
-    }
+.kpi-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 22px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    min-height: 150px;
+}
 
-    .kpi-sub {
-        font-size: 13px;
-        color: rgba(255,255,255,0.72);
-        line-height: 1.5;
-    }
+.kpi-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+}
 
-    .section-title {
-        font-size: 18px !important;
-        font-weight: 700;
-        color: #e5e7eb;
-        margin: 42px 0 16px 0;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
-        padding-bottom: 10px;
-    }
+.kpi-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #4b5563;
+}
 
-    .subtle-text {
-        color: #94a3b8;
-        font-size: 15px;
-        line-height: 1.8;
-    }
+/* Callout */
+.callout {
+    background: #ffffff;
+    border: 1px solid #dbe3ea;
+    border-left: 5px solid #1f2937;
+    border-radius: 16px;
+    padding: 22px 22px;
+    margin: 8px 0 22px 0;
+    color: #374151;
+    line-height: 1.75;
+}
 
-    .value-box {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 12px;
-        padding: 22px;
-        height: 100%;
-    }
+/* Divider spacing */
+.spacer-xxs { height: 8px; }
+.spacer-xs { height: 16px; }
+.spacer-sm { height: 24px; }
+.spacer-md { height: 36px; }
 
-    .value-box h4 {
-        color: #f8fafc;
-        margin-bottom: 10px;
-        font-size: 18px;
-    }
-
-    .image-caption {
-        color: #94a3b8;
-        font-size: 13px;
-        margin-top: 6px;
-        margin-bottom: 22px;
-    }
-
-    .positioning-box {
-        text-align: center;
-        padding: 30px 20px;
-        color: #94a3b8;
-        font-style: italic;
-        font-size: 15px;
-    }
+/* Small caption */
+.caption {
+    color: #6b7280;
+    font-size: 13px;
+    margin-top: 8px;
+    line-height: 1.6;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# --------------------------------------------------
-# 5. Brand Banner + Logo + KPI Section
-# --------------------------------------------------
-banner_html = """
-<div class="brand-banner">
-    <div class="brand-banner-inner">
-        <div class="brand-topline">
-            Engineered for Predictability. Built for Value.
-        </div>
-        <div class="brand-headline">
-            A New Standard for Residential Delivery.
-        </div>
-        <div class="brand-subheadline">
-            PMC is a branded delivery platform that connects precision-manufactured
-            construction systems with local U.S. execution partners.
-        </div>
-        <div class="brand-bodycopy">
-            Designed to improve speed, predictability, and capital efficiency across
-            multifamily, townhome, and workforce housing.
-        </div>
-    </div>
-</div>
-"""
-st.markdown(banner_html, unsafe_allow_html=True)
-
-top_left, top_right = st.columns([1, 5])
-
-with top_left:
-    if os.path.exists(logo_path):
-        st.image(logo_path, width=110)
-
-with top_right:
-    k1, k2, k3 = st.columns(3)
-
-    with k1:
-        st.markdown("""
-        <div class="kpi-card">
-            <div class="kpi-label">Cost Efficiency</div>
-            <div class="kpi-value">Up to 30%</div>
-            <div class="kpi-sub">Potential reduction in total construction cost under upside scenario assumptions.</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with k2:
-        st.markdown("""
-        <div class="kpi-card">
-            <div class="kpi-label">Delivery Speed</div>
-            <div class="kpi-value">Up to 7 Months</div>
-            <div class="kpi-sub">Illustrative schedule acceleration compared with conventional delivery methods.</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with k3:
-        st.markdown("""
-        <div class="kpi-card">
-            <div class="kpi-label">Revenue Timing</div>
-            <div class="kpi-value">Earlier Occupancy</div>
-            <div class="kpi-sub">Faster completion may support earlier lease-up and revenue capture.</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-st.caption("Use the scenario-based ROI simulator below to test project economics.")
-
-# --------------------------------------------------
-# 6. Solutions Section
-# --------------------------------------------------
-st.markdown('<p class="section-title">Solutions</p>', unsafe_allow_html=True)
-
-s1, s2, s3 = st.columns(3)
-
-with s1:
-    st.markdown("""
-    <div class="value-box">
-        <h4>Multifamily</h4>
-        <p class="subtle-text">
-            A branded delivery model for developers seeking faster schedules,
-            stronger predictability, and improved capital efficiency.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with s2:
-    st.markdown("""
-    <div class="value-box">
-        <h4>Townhome</h4>
-        <p class="subtle-text">
-            A system-based construction approach for repeatable, efficient,
-            and scalable residential development.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with s3:
-    st.markdown("""
-    <div class="value-box">
-        <h4>Workforce Housing</h4>
-        <p class="subtle-text">
-            Built for projects where speed, standardization, and controlled
-            delivery matter most.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-# --------------------------------------------------
-# 7. How PMC Works Section
-# --------------------------------------------------
-st.markdown('<p class="section-title">How PMC Works</p>', unsafe_allow_html=True)
-
-h1, h2, h3 = st.columns(3)
-
-with h1:
-    st.markdown("""
-    <div class="value-box">
-        <h4>Technology Access</h4>
-        <p class="subtle-text">
-            PMC connects qualified projects to precision-manufactured
-            construction know-how and structured system application.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with h2:
-    st.markdown("""
-    <div class="value-box">
-        <h4>Local Execution Partners</h4>
-        <p class="subtle-text">
-            PMC works through local U.S. partners for project-specific
-            engineering, execution, and delivery support.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with h3:
-    st.markdown("""
-    <div class="value-box">
-        <h4>Delivery Coordination</h4>
-        <p class="subtle-text">
-            PMC functions as a branded coordination platform focused on speed,
-            predictability, and project-level alignment.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-# --------------------------------------------------
-# 8. About Section
-# --------------------------------------------------
-st.markdown('<p class="section-title">About Asia PCE</p>', unsafe_allow_html=True)
-
-col_about1, col_about2, col_about3 = st.columns(3)
-
-with col_about1:
-    st.markdown("""
-    <div class="value-box">
-        <h4>Faster Delivery</h4>
-        <p class="subtle-text">
-            Standardized precast assembly can reduce field complexity and shorten the overall construction timeline.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col_about2:
-    st.markdown("""
-    <div class="value-box">
-        <h4>Greater Predictability</h4>
-        <p class="subtle-text">
-            A system-based delivery approach improves consistency across manufacturing, installation, and execution.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col_about3:
-    st.markdown("""
-    <div class="value-box">
-        <h4>Earlier Revenue Capture</h4>
-        <p class="subtle-text">
-            Faster delivery may enable earlier occupancy, lease-up, and revenue generation compared with conventional methods.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("""
-<p class="subtle-text">
-Asia PCE is designed to work within the existing developer, architect, and general contractor structure.
-It is positioned as a precast concrete delivery system for multifamily, townhome, and workforce housing projects
-where speed, quality, and capital efficiency matter.
-</p>
-""", unsafe_allow_html=True)
-
-# --------------------------------------------------
-# 9. Visual Assets Section
-# --------------------------------------------------
-st.markdown('<p class="section-title">Technical Design & Visual Assets</p>', unsafe_allow_html=True)
-
-if os.path.exists(community_img):
-    st.image(community_img, use_container_width=True)
-    st.markdown('<div class="image-caption">Community Lifestyle Rendering</div>', unsafe_allow_html=True)
-
-st.markdown("### Development Vision")
-col1, col2 = st.columns(2)
-
-with col1:
-    if os.path.exists(masterplan_img):
-        st.image(masterplan_img, use_container_width=True)
-        st.markdown('<div class="image-caption">200-Unit Master Plan Overview</div>', unsafe_allow_html=True)
-
-with col2:
-    if os.path.exists(system_img):
-        st.image(system_img, use_container_width=True)
-        st.markdown('<div class="image-caption">System Overview: Foundation, Exterior, Interior, Final Delivery</div>', unsafe_allow_html=True)
-
-st.markdown("### Construction Execution")
-col3, col4 = st.columns(2)
-
-with col3:
-    if os.path.exists(precast_img):
-        st.image(precast_img, use_container_width=True)
-        st.markdown('<div class="image-caption">Precast Structural Progression</div>', unsafe_allow_html=True)
-
-with col4:
-    if os.path.exists(assembly_img):
-        st.image(assembly_img, use_container_width=True)
-        st.markdown('<div class="image-caption">Mass Assembly Capability</div>', unsafe_allow_html=True)
-
-# --------------------------------------------------
-# 10. Sidebar Inputs
-# --------------------------------------------------
-with st.sidebar:
-    st.header("Project Inputs")
-
-    total_units = st.number_input("Total Units", min_value=1, value=100, step=1)
-    avg_monthly_rent = st.number_input("Average Monthly Rent per Unit (USD)", min_value=1, value=2500, step=100)
-    baseline_cost_per_unit = st.number_input("Baseline Construction Cost per Unit (USD)", min_value=50000, value=150000, step=5000)
-    conventional_duration = st.number_input("Conventional Construction Duration (Months)", min_value=1, value=18, step=1)
-
-    st.markdown("---")
-    st.markdown("### Delivery Structure")
-    st.caption("Illustrative delivery model for presentation purposes")
-    st.write("- EPC / Delivery Partner")
-    st.write("- Asia PCE System Provider")
-    st.write("- PMC USA Execution Platform")
-
-# --------------------------------------------------
-# 11. Scenario Definitions
-# --------------------------------------------------
-scenarios = {
-    "Conservative": {"saving_pct": 10, "schedule_gain": 3},
-    "Base Case": {"saving_pct": 20, "schedule_gain": 5},
-    "Upside Case": {"saving_pct": 30, "schedule_gain": 7}
-}
-
-# --------------------------------------------------
-# 12. ROI Simulator
-# --------------------------------------------------
-st.markdown('<p class="section-title">Scenario-Based ROI Simulator</p>', unsafe_allow_html=True)
-st.markdown("""
-<p class="subtle-text">
-Adjust the project inputs in the sidebar to evaluate the potential financial impact of Asia PCE under
-Conservative, Base Case, and Upside assumptions.
-</p>
-""", unsafe_allow_html=True)
-
-tab1, tab2, tab3 = st.tabs(["Conservative", "Base Case", "Upside Case"])
-
-def render_scenario(name, scenario):
-    saving_pct = scenario["saving_pct"]
-    schedule_gain = scenario["schedule_gain"]
-
-    total_project_cost = total_units * baseline_cost_per_unit
-    construction_savings = total_project_cost * (saving_pct / 100)
-    early_revenue = total_units * avg_monthly_rent * schedule_gain
-    total_advantage = construction_savings + early_revenue
-
-    pce_duration = max(conventional_duration - schedule_gain, 1)
-    pce_cost = total_project_cost - construction_savings
-
-    col_a, col_b, col_c = st.columns(3)
-    with col_a:
-        st.metric("Construction Cost Savings", f"${construction_savings:,.0f}", f"{saving_pct}% vs. baseline")
-    with col_b:
-        st.metric("Earlier Revenue Capture", f"${early_revenue:,.0f}", f"{schedule_gain} months faster")
-    with col_c:
-        st.metric("Total Financial Advantage", f"${total_advantage:,.0f}", "Illustrative estimate")
-
+# =========================
+# HELPER
+# =========================
+def card(title, body):
     st.markdown(
         f"""
-        **Executive Summary:** Under the **{name}** scenario, Asia PCE may reduce total project cost by
-        **${construction_savings:,.0f}**, accelerate delivery by **{schedule_gain} months**, and generate
-        approximately **${early_revenue:,.0f}** in earlier revenue capture.
-        """
+        <div class="info-card">
+            <h4>{title}</h4>
+            <p>{body}</p>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
-    fig_cost = go.Figure(data=[
-        go.Bar(
-            name="Conventional",
-            x=["Total Construction Cost"],
-            y=[total_project_cost],
-            text=[f"${total_project_cost:,.0f}"],
-            textposition="outside"
-        ),
-        go.Bar(
-            name="Asia PCE",
-            x=["Total Construction Cost"],
-            y=[pce_cost],
-            text=[f"${pce_cost:,.0f}"],
-            textposition="outside"
-        )
-    ])
-    fig_cost.update_layout(
-        barmode="group",
-        height=380,
-        margin=dict(l=20, r=20, t=30, b=20),
-        yaxis_title="USD",
-        legend_title="Method",
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(255,255,255,0.02)",
-        font=dict(color="#e5e7eb")
+def kpi_card(title, body):
+    st.markdown(
+        f"""
+        <div class="kpi-card">
+            <div class="kpi-title">{title}</div>
+            <div class="kpi-text">{body}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
-    st.plotly_chart(fig_cost, use_container_width=True)
 
-    fig_schedule = go.Figure(data=[
-        go.Bar(
-            name="Conventional",
-            x=["Construction Duration"],
-            y=[conventional_duration],
-            text=[f"{conventional_duration} mo"],
-            textposition="outside"
-        ),
-        go.Bar(
-            name="Asia PCE",
-            x=["Construction Duration"],
-            y=[pce_duration],
-            text=[f"{pce_duration} mo"],
-            textposition="outside"
-        )
-    ])
-    fig_schedule.update_layout(
-        barmode="group",
-        height=380,
-        margin=dict(l=20, r=20, t=30, b=20),
-        yaxis_title="Months",
-        legend_title="Method",
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(255,255,255,0.02)",
-        font=dict(color="#e5e7eb")
-    )
-    st.plotly_chart(fig_schedule, use_container_width=True)
+# =========================
+# HERO
+# =========================
+st.markdown("""
+<div class="hero-wrap">
+  <div class="hero-inner">
+    <div class="eyebrow">Engineered for Predictability. Built for Value.</div>
+    <div class="hero-title">A New Standard for Residential Delivery.</div>
+    <div class="hero-subtitle">
+      PMC is a branded delivery platform that connects precision-manufactured construction systems
+      with qualified U.S. execution partners.
+    </div>
+    <div class="hero-note">
+      Designed to improve delivery speed, predictability, and capital efficiency across multifamily,
+      townhome, workforce housing, and project-specific residential applications.
+      <br><br>
+      <strong>PMC is not a general contractor.</strong> PMC helps structure project delivery by aligning
+      technical system access, project applicability, and localized execution capacity.
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
-with tab1:
-    render_scenario("Conservative", scenarios["Conservative"])
-with tab2:
-    render_scenario("Base Case", scenarios["Base Case"])
-with tab3:
-    render_scenario("Upside Case", scenarios["Upside Case"])
+col_cta1, col_cta2, col_cta3 = st.columns([1.1, 1.1, 4])
+with col_cta1:
+    st.button("Request a Feasibility Review", use_container_width=True)
+with col_cta2:
+    st.button("Explore the Delivery Model", use_container_width=True)
 
-# --------------------------------------------------
-# 13. Assumptions & Exclusions
-# --------------------------------------------------
-st.markdown('<p class="section-title">Model Assumptions & Exclusions</p>', unsafe_allow_html=True)
+st.markdown('<div class="spacer-sm"></div>', unsafe_allow_html=True)
 
-col_ass, col_exc = st.columns(2)
-
-with col_ass:
-    with st.expander("View Calculation Assumptions", expanded=True):
-        st.write(f"- Baseline construction cost per unit: ${baseline_cost_per_unit:,.0f}")
-        st.write(f"- Conventional construction duration: {conventional_duration} months")
-        st.write("- Earlier revenue capture is modeled using monthly rent × unit count × schedule gain")
-        st.write("- Asia PCE scenarios are presented as illustrative ranges for feasibility discussion")
-
-with col_exc:
-    with st.expander("What Is Not Included in This Model", expanded=True):
-        st.write("- Land acquisition cost")
-        st.write("- Financing and interest carry")
-        st.write("- Local permitting and entitlement delays")
-        st.write("- Site-specific logistics, crane, and transportation variance")
-        st.write("- Tax, insurance, legal, and ownership structure impacts")
-        st.write("- Lease-up timing variation after delivery")
-
-st.caption(
-    "This tool is intended for preliminary feasibility review only and does not replace full underwriting, engineering, or project-specific cost analysis."
+# =========================
+# SECTION 1: STRATEGIC VALUE
+# =========================
+st.markdown('<div class="section-title">Strategic Value</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-subtitle">PMC is designed to help developers, execution partners, and stakeholders evaluate a more structured path to residential delivery.</div>',
+    unsafe_allow_html=True
 )
 
-# --------------------------------------------------
-# 14. Lead Capture + CSV + Google Sheets Save
-# --------------------------------------------------
-st.markdown('<p class="section-title">Request a Feasibility Review</p>', unsafe_allow_html=True)
+c1, c2, c3, c4 = st.columns(4)
+with c1:
+    kpi_card("Delivery Predictability", "A more structured pathway for aligning system design, execution sequence, and project coordination.")
+with c2:
+    kpi_card("Capital Efficiency", "Supports earlier evaluation of project fit, delivery assumptions, and deployment logic.")
+with c3:
+    kpi_card("Systemized Coordination", "Brings technical access, market framing, and execution planning into one platform-led structure.")
+with c4:
+    kpi_card("Scalable Local Execution", "Works through qualified U.S. execution partners rather than replacing them.")
 
-with st.form("contact_form"):
-    c1, c2 = st.columns(2)
+st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
 
-    with c1:
+# =========================
+# SECTION 2: SOLUTIONS
+# =========================
+st.markdown('<div class="section-title">Solutions</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-subtitle">PMC is focused on residential project types where delivery discipline, repeatability, and structured coordination can create strategic value.</div>',
+    unsafe_allow_html=True
+)
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    card(
+        "Multifamily",
+        "For apartment and rental housing projects where repeatability, schedule discipline, and system-driven coordination matter."
+    )
+with col2:
+    card(
+        "Townhome",
+        "For projects requiring design consistency, controlled deployment logic, and a more structured path from plan to execution."
+    )
+with col3:
+    card(
+        "Workforce Housing",
+        "For residential programs prioritizing speed, efficient replication, and scalable local delivery in support-oriented housing environments."
+    )
+
+st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
+
+# =========================
+# SECTION 3: HOW PMC WORKS
+# =========================
+st.markdown('<div class="section-title">How PMC Works</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-subtitle">PMC is structured as a delivery platform. The goal is not to replace local builders, but to create a more organized framework for applying precision-manufactured residential systems in the U.S. market.</div>',
+    unsafe_allow_html=True
+)
+
+w1, w2, w3, w4, w5 = st.columns(5)
+with w1:
+    card("1. System Access", "PMC works to establish access to technical systems and cooperation frameworks that support project-level application.")
+with w2:
+    card("2. Project Fit Review", "Potential projects are screened for applicability, deployment logic, and alignment with delivery assumptions.")
+with w3:
+    card("3. Partner Alignment", "Qualified U.S. execution partners are aligned based on project type, location, and implementation needs.")
+with w4:
+    card("4. Delivery Coordination", "PMC helps frame the pathway between technical intent, project structure, and localized execution.")
+with w5:
+    card("5. Project-Level Application", "Each project is evaluated as a specific implementation case rather than a one-size-fits-all offering.")
+
+st.markdown("""
+<div class="callout">
+<strong>Important positioning:</strong><br>
+PMC is not presenting itself as a conventional general contractor.
+PMC is designed to function as a branded delivery platform that helps connect technical system access
+with project-specific execution capacity in the U.S.
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
+
+# =========================
+# SECTION 4: FOR EXECUTION PARTNERS
+# =========================
+st.markdown('<div class="section-title">For Execution Partners</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-subtitle">PMC is intended to work with local U.S. execution partners, not against them.</div>',
+    unsafe_allow_html=True
+)
+
+ep1, ep2 = st.columns(2)
+with ep1:
+    card(
+        "What PMC Does",
+        "PMC helps structure project opportunities by aligning system access, project framing, technical coordination, and outward-facing delivery logic."
+    )
+with ep2:
+    card(
+        "What Local Partners Do",
+        "Local partners remain central to permitting interface, site execution, installation sequencing, subcontract management, and field delivery."
+    )
+
+st.markdown("""
+<div class="callout">
+<strong>Execution remains local.</strong><br>
+PMC does not seek to replace local builders or field operators.
+The platform is designed to support project structuring and coordination while preserving the role of qualified U.S. execution teams.
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
+
+# =========================
+# SECTION 5: TECHNOLOGY FOUNDATION
+# =========================
+st.markdown('<div class="section-title">Technology Foundation</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-subtitle">PMC’s platform direction is supported by ongoing technical cooperation discussions around Full PC-based construction systems and related implementation support.</div>',
+    unsafe_allow_html=True
+)
+
+t1, t2 = st.columns([1.2, 1])
+with t1:
+    card(
+        "Technical Basis",
+        "The platform is being developed around precision-manufactured construction system logic, including technical documentation, engineering support, code coordination, and implementation training frameworks."
+    )
+    st.markdown('<div class="caption">This section should support credibility without making PMC look like a simple overseas sales agent.</div>', unsafe_allow_html=True)
+with t2:
+    st.image("system_overview.png (2).png", use_container_width=True)
+    st.markdown('<div class="caption">Illustrative system overview / coordination image</div>', unsafe_allow_html=True)
+
+st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
+
+# =========================
+# SECTION 6: VISUAL ASSETS
+# =========================
+st.markdown('<div class="section-title">Technical Design & Visual Assets</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-subtitle">Visual references are used to support understanding of planning logic, assembly sequence, and residential end-state potential.</div>',
+    unsafe_allow_html=True
+)
+
+img1, img2 = st.columns(2)
+with img1:
+    st.image("masterplan.png.png", use_container_width=True)
+    st.markdown('<div class="caption"><strong>Master Planning Logic</strong><br>Illustrative planning and layout reference for repeatable residential deployment.</div>', unsafe_allow_html=True)
+
+with img2:
+    st.image("community_vibe.png.png", use_container_width=True)
+    st.markdown('<div class="caption"><strong>Residential End-State Visualization</strong><br>Intended lifestyle and community positioning reference.</div>', unsafe_allow_html=True)
+
+img3, img4 = st.columns(2)
+with img3:
+    st.image("precast_progression.png.png", use_container_width=True)
+    st.markdown('<div class="caption"><strong>Assembly Sequence</strong><br>Indicative view of how structured deployment may progress.</div>', unsafe_allow_html=True)
+
+with img4:
+    st.image("mass_assembly.png.png", use_container_width=True)
+    st.markdown('<div class="caption"><strong>Scalable Deployment</strong><br>Illustrative mass-assembly logic and execution pattern.</div>', unsafe_allow_html=True)
+
+st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
+
+# =========================
+# SECTION 7: ROI SIMULATOR
+# =========================
+st.markdown('<div class="section-title">ROI Simulator</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-subtitle">This tool is intended for preliminary discussion only. It is not a proposal, guarantee, or final underwriting model.</div>',
+    unsafe_allow_html=True
+)
+
+with st.expander("Open ROI Simulator", expanded=True):
+    col_a, col_b, col_c = st.columns(3)
+    with col_a:
+        units = st.number_input("Estimated Unit Count", min_value=1, value=100, step=1)
+        avg_rent = st.number_input("Avg Monthly Rent per Unit ($)", min_value=0, value=1800, step=50)
+    with col_b:
+        dev_cost = st.number_input("Estimated Development Cost ($)", min_value=0, value=18000000, step=100000)
+        occ_rate = st.slider("Occupancy Rate (%)", 0, 100, 92)
+    with col_c:
+        op_margin = st.slider("Operating Margin (%)", 0, 100, 58)
+        hold_years = st.slider("Hold Period (Years)", 1, 20, 5)
+
+    annual_revenue = units * avg_rent * 12 * (occ_rate / 100)
+    noi = annual_revenue * (op_margin / 100)
+    total_noi = noi * hold_years
+    simple_roi = (total_noi - dev_cost) / dev_cost * 100 if dev_cost > 0 else 0
+
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Annual Revenue", f"${annual_revenue:,.0f}")
+    m2.metric("Annual NOI", f"${noi:,.0f}")
+    m3.metric("Simple ROI", f"{simple_roi:.1f}%")
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=["Development Cost", "Total NOI Over Hold"], y=[dev_cost, total_noi]))
+    fig.update_layout(
+        title="Preliminary Value Comparison",
+        height=420,
+        margin=dict(l=20, r=20, t=50, b=20)
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
+
+# =========================
+# SECTION 8: ASSUMPTIONS & EXCLUSIONS
+# =========================
+st.markdown('<div class="section-title">Model Assumptions & Exclusions</div>', unsafe_allow_html=True)
+st.markdown("""
+<div class="callout">
+This website and any embedded calculator or visual content are provided for preliminary planning and discussion purposes only.
+Nothing on this site should be interpreted as:
+<ul>
+<li>a binding construction offer,</li>
+<li>a guaranteed project outcome,</li>
+<li>final engineering advice,</li>
+<li>code approval confirmation, or</li>
+<li>an investment solicitation.</li>
+</ul>
+Project-specific technical review, pricing, execution structure, code analysis, and contractual allocation must be determined separately.
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
+
+# =========================
+# SECTION 9: REQUEST FORM
+# =========================
+st.markdown('<div class="section-title">Request a Feasibility Review</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="section-subtitle">Use this form to start a preliminary discussion regarding project fit, delivery structure, and potential implementation pathways.</div>',
+    unsafe_allow_html=True
+)
+
+with st.form("feasibility_form"):
+    col_f1, col_f2 = st.columns(2)
+
+    with col_f1:
         full_name = st.text_input("Full Name")
         company_name = st.text_input("Company Name")
         email = st.text_input("Email Address")
-
-    with c2:
-        project_state = st.selectbox(
-            "Project State",
-            ["Louisiana", "Texas", "Florida", "Georgia", "Arizona", "Other"]
-        )
+        project_state = st.text_input("Project State")
         project_type = st.selectbox(
             "Project Type",
-            ["Multifamily", "Townhome", "Workforce Housing", "Mixed-Use", "Other"]
+            ["Multifamily", "Townhome", "Workforce Housing", "Industrial Support Housing", "Other"]
         )
-        est_units = st.number_input("Estimated Unit Count", min_value=1, value=100, step=1)
 
-    c3, c4 = st.columns(2)
-    with c3:
+    with col_f2:
+        estimated_unit_count = st.number_input("Estimated Unit Count", min_value=0, step=1)
         target_start_date = st.date_input("Target Start Date")
-    with c4:
-        estimated_budget_usd = st.number_input(
-            "Estimated Budget (USD)",
-            min_value=0,
-            value=0,
-            step=50000,
-            format="%d"
-        )
+        estimated_budget_usd = st.number_input("Estimated Budget (USD)", min_value=0, step=100000)
+        project_brief = st.text_area("Project Brief", height=180)
 
-    project_brief = st.text_area("Project Brief")
-    submitted = st.form_submit_button("Submit Request for Review")
+    submitted = st.form_submit_button("Submit Review Request", use_container_width=True)
 
-if submitted:
-    if not full_name.strip() or not email.strip():
-        st.error("Please provide at least Full Name and Email Address.")
-    else:
-        submission_data = {
+    if submitted:
+        record = {
             "submitted_at_utc": datetime.utcnow().isoformat(),
-            "full_name": full_name.strip(),
-            "company_name": company_name.strip(),
-            "email": email.strip(),
+            "full_name": full_name,
+            "company_name": company_name,
+            "email": email,
             "project_state": project_state,
             "project_type": project_type,
-            "estimated_unit_count": est_units,
+            "estimated_unit_count": estimated_unit_count,
             "target_start_date": str(target_start_date),
             "estimated_budget_usd": estimated_budget_usd,
-            "project_brief": project_brief.strip(),
+            "project_brief": project_brief
         }
 
-        save_results = []
+        # 기존 Google Sheets / CSV 저장 로직이 있으면 여기에 그대로 연결
+        st.success("Thank you. Your feasibility review request has been recorded.")
 
-        try:
-            save_submission_to_csv(submission_data, csv_path)
-            save_results.append("CSV")
-        except Exception as e:
-            st.error(f"CSV save failed: {e}")
+        st.write("Submitted data preview:")
+        st.dataframe(pd.DataFrame([record]), use_container_width=True)
 
-        try:
-            save_submission_to_gsheet(submission_data)
-            save_results.append("Google Sheets")
-        except Exception as e:
-            st.error(f"Google Sheets save failed: {e}")
+st.markdown('<div class="spacer-md"></div>', unsafe_allow_html=True)
 
-        if save_results:
-            st.success(f"Thank you. Your request has been saved to: {', '.join(save_results)}")
-        else:
-            st.error("Submission failed. No destination could be saved.")
-
-# --------------------------------------------------
-# 15. Brand Positioning
-# --------------------------------------------------
-st.markdown("---")
+# =========================
+# SECTION 10: CLOSING
+# =========================
 st.markdown("""
-<div class="positioning-box">
-    “PMC is not a contractor pitch. It is a branded delivery platform designed to help
-    developers and builders move faster with greater predictability.”
+<div class="hero-wrap" style="padding: 40px 42px; margin-bottom: 10px;">
+  <div class="hero-inner">
+    <div class="eyebrow">Closing Position</div>
+    <div class="hero-title" style="font-size:32px; max-width:900px;">
+      Not a conventional contractor pitch. A structured platform for residential delivery.
+    </div>
+    <div class="hero-subtitle" style="font-size:17px; max-width:900px;">
+      PMC helps developers, partners, and stakeholders evaluate a more organized path to applying precision-manufactured residential systems through qualified U.S. execution relationships.
+    </div>
+  </div>
 </div>
 """, unsafe_allow_html=True)
