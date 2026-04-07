@@ -1,5 +1,5 @@
-import streamlit as st
 import os
+import streamlit as st
 import plotly.graph_objects as go
 
 # --------------------------------------------------
@@ -11,12 +11,11 @@ st.set_page_config(
 )
 
 # --------------------------------------------------
-# 2. Base Paths
+# 2. File Paths
 # --------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 logo_path = os.path.join(BASE_DIR, "PMC Logo.png")
-
 community_img = os.path.join(BASE_DIR, "community_vibe.png.png")
 masterplan_img = os.path.join(BASE_DIR, "masterplan.png.png")
 system_img = os.path.join(BASE_DIR, "system_overview.png (2).png")
@@ -37,6 +36,10 @@ st.markdown("""
     .stApp {
         background: #020817;
         color: #e5e7eb;
+    }
+
+    section[data-testid="stSidebar"] {
+        background: #071426;
     }
 
     .hero-section {
@@ -164,48 +167,53 @@ st.markdown("""
 # --------------------------------------------------
 # 4. Hero Section
 # --------------------------------------------------
-st.markdown('<div class="hero-section">', unsafe_allow_html=True)
-
+hero_logo_html = ""
 if os.path.exists(logo_path):
-    st.image(logo_path, width=110)
-
-st.markdown('<div class="hero-eyebrow">Strategic Investment Platform</div>', unsafe_allow_html=True)
-st.markdown('<div class="hero-title">Build Faster. Deliver Earlier. Capture More Value.</div>', unsafe_allow_html=True)
-st.markdown(
-    '<div class="hero-copy">'
-    'Asia PCE is a precast concrete delivery system designed for multifamily development '
-    'with stronger schedule control, greater predictability, and earlier revenue potential.'
-    '</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
+    hero_logo_html = f"""
+    <div style="margin-bottom:18px;">
+        <img src="data:image/png;base64,{__import__('base64').b64encode(open(logo_path, 'rb').read()).decode()}" width="110">
+    </div>
     """
+
+hero_html = f"""
+<div class="hero-section">
+    {hero_logo_html}
+    <div class="hero-eyebrow">Strategic Investment Platform</div>
+    <div class="hero-title">Build Faster. Deliver Earlier. Capture More Value.</div>
+    <div class="hero-copy">
+        Asia PCE is a precast concrete delivery system designed for multifamily development
+        with stronger schedule control, greater predictability, and earlier revenue potential.
+    </div>
+
     <div class="hero-kpi-row">
         <div class="hero-kpi-card">
             <div class="hero-kpi-label">Cost Efficiency</div>
             <div class="hero-kpi-value">Up to 30%</div>
-            <div class="hero-kpi-sub">Potential reduction in total construction cost under upside scenario assumptions.</div>
+            <div class="hero-kpi-sub">
+                Potential reduction in total construction cost under upside scenario assumptions.
+            </div>
         </div>
 
         <div class="hero-kpi-card">
             <div class="hero-kpi-label">Delivery Speed</div>
             <div class="hero-kpi-value">Up to 7 Months</div>
-            <div class="hero-kpi-sub">Illustrative schedule acceleration compared with conventional delivery methods.</div>
+            <div class="hero-kpi-sub">
+                Illustrative schedule acceleration compared with conventional delivery methods.
+            </div>
         </div>
 
         <div class="hero-kpi-card">
             <div class="hero-kpi-label">Revenue Timing</div>
             <div class="hero-kpi-value">Earlier Occupancy</div>
-            <div class="hero-kpi-sub">Faster completion may support earlier lease-up and revenue capture.</div>
+            <div class="hero-kpi-sub">
+                Faster completion may support earlier lease-up and revenue capture.
+            </div>
         </div>
     </div>
-    """,
-    unsafe_allow_html=True
-)
-
+</div>
+"""
+st.markdown(hero_html, unsafe_allow_html=True)
 st.caption("Use the scenario-based ROI simulator below to test project economics.")
-st.markdown('</div>', unsafe_allow_html=True)
 
 # --------------------------------------------------
 # 5. About Section
@@ -265,14 +273,12 @@ with st.expander("Image Debug Check", expanded=False):
     st.write("Precast exists:", os.path.exists(precast_img))
     st.write("Assembly exists:", os.path.exists(assembly_img))
 
-# 1) 대표 이미지
 if os.path.exists(community_img):
     st.image(community_img, use_container_width=True)
     st.markdown('<div class="image-caption">Community Lifestyle Rendering</div>', unsafe_allow_html=True)
 else:
     st.warning("Community image not found.")
 
-# 2) Development Vision
 st.markdown("### Development Vision")
 col1, col2 = st.columns(2)
 
@@ -290,7 +296,6 @@ with col2:
     else:
         st.warning("System overview image not found.")
 
-# 3) Construction Execution
 st.markdown("### Construction Execution")
 col3, col4 = st.columns(2)
 
@@ -314,33 +319,10 @@ with col4:
 with st.sidebar:
     st.header("Project Inputs")
 
-    total_units = st.number_input(
-        "Total Units",
-        min_value=1,
-        value=100,
-        step=1
-    )
-
-    avg_monthly_rent = st.number_input(
-        "Average Monthly Rent per Unit (USD)",
-        min_value=1,
-        value=2500,
-        step=100
-    )
-
-    baseline_cost_per_unit = st.number_input(
-        "Baseline Construction Cost per Unit (USD)",
-        min_value=50000,
-        value=150000,
-        step=5000
-    )
-
-    conventional_duration = st.number_input(
-        "Conventional Construction Duration (Months)",
-        min_value=1,
-        value=18,
-        step=1
-    )
+    total_units = st.number_input("Total Units", min_value=1, value=100, step=1)
+    avg_monthly_rent = st.number_input("Average Monthly Rent per Unit (USD)", min_value=1, value=2500, step=100)
+    baseline_cost_per_unit = st.number_input("Baseline Construction Cost per Unit (USD)", min_value=50000, value=150000, step=5000)
+    conventional_duration = st.number_input("Conventional Construction Duration (Months)", min_value=1, value=18, step=1)
 
     st.markdown("---")
     st.markdown("### Delivery Structure")
@@ -384,27 +366,12 @@ def render_scenario(name, scenario):
     pce_cost = total_project_cost - construction_savings
 
     col_a, col_b, col_c = st.columns(3)
-
     with col_a:
-        st.metric(
-            "Construction Cost Savings",
-            f"${construction_savings:,.0f}",
-            f"{saving_pct}% vs. baseline"
-        )
-
+        st.metric("Construction Cost Savings", f"${construction_savings:,.0f}", f"{saving_pct}% vs. baseline")
     with col_b:
-        st.metric(
-            "Earlier Revenue Capture",
-            f"${early_revenue:,.0f}",
-            f"{schedule_gain} months faster"
-        )
-
+        st.metric("Earlier Revenue Capture", f"${early_revenue:,.0f}", f"{schedule_gain} months faster")
     with col_c:
-        st.metric(
-            "Total Financial Advantage",
-            f"${total_advantage:,.0f}",
-            "Illustrative estimate"
-        )
+        st.metric("Total Financial Advantage", f"${total_advantage:,.0f}", "Illustrative estimate")
 
     st.markdown(
         f"""
@@ -430,7 +397,6 @@ def render_scenario(name, scenario):
             textposition="outside"
         )
     ])
-
     fig_cost.update_layout(
         barmode="group",
         height=380,
@@ -459,7 +425,6 @@ def render_scenario(name, scenario):
             textposition="outside"
         )
     ])
-
     fig_schedule.update_layout(
         barmode="group",
         height=380,
@@ -474,10 +439,8 @@ def render_scenario(name, scenario):
 
 with tab1:
     render_scenario("Conservative", scenarios["Conservative"])
-
 with tab2:
     render_scenario("Base Case", scenarios["Base Case"])
-
 with tab3:
     render_scenario("Upside Case", scenarios["Upside Case"])
 
@@ -533,7 +496,6 @@ with st.form("contact_form"):
         est_units = st.number_input("Estimated Unit Count", min_value=1, value=100, step=1)
 
     project_brief = st.text_area("Project Brief")
-
     submitted = st.form_submit_button("Submit Request for Review")
 
 if submitted:
