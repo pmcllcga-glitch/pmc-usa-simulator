@@ -43,6 +43,8 @@ def save_submission_to_csv(data: dict, file_path: str) -> None:
         "project_state",
         "project_type",
         "estimated_unit_count",
+        "target_start_date",
+        "estimated_budget_usd",
         "project_brief",
     ]
 
@@ -87,6 +89,8 @@ def save_submission_to_gsheet(data: dict) -> None:
         data["project_state"],
         data["project_type"],
         data["estimated_unit_count"],
+        data["target_start_date"],
+        data["estimated_budget_usd"],
         data["project_brief"],
     ]
 
@@ -327,19 +331,9 @@ where speed, quality, and capital efficiency matter.
 # --------------------------------------------------
 st.markdown('<p class="section-title">Technical Design & Visual Assets</p>', unsafe_allow_html=True)
 
-with st.expander("Image Debug Check", expanded=False):
-    st.write("Logo exists:", os.path.exists(logo_path))
-    st.write("Community exists:", os.path.exists(community_img))
-    st.write("Masterplan exists:", os.path.exists(masterplan_img))
-    st.write("System exists:", os.path.exists(system_img))
-    st.write("Precast exists:", os.path.exists(precast_img))
-    st.write("Assembly exists:", os.path.exists(assembly_img))
-
 if os.path.exists(community_img):
     st.image(community_img, use_container_width=True)
     st.markdown('<div class="image-caption">Community Lifestyle Rendering</div>', unsafe_allow_html=True)
-else:
-    st.warning("Community image not found.")
 
 st.markdown("### Development Vision")
 col1, col2 = st.columns(2)
@@ -348,15 +342,11 @@ with col1:
     if os.path.exists(masterplan_img):
         st.image(masterplan_img, use_container_width=True)
         st.markdown('<div class="image-caption">200-Unit Master Plan Overview</div>', unsafe_allow_html=True)
-    else:
-        st.warning("Master plan image not found.")
 
 with col2:
     if os.path.exists(system_img):
         st.image(system_img, use_container_width=True)
         st.markdown('<div class="image-caption">System Overview: Foundation, Exterior, Interior, Final Delivery</div>', unsafe_allow_html=True)
-    else:
-        st.warning("System overview image not found.")
 
 st.markdown("### Construction Execution")
 col3, col4 = st.columns(2)
@@ -365,15 +355,11 @@ with col3:
     if os.path.exists(precast_img):
         st.image(precast_img, use_container_width=True)
         st.markdown('<div class="image-caption">Precast Structural Progression</div>', unsafe_allow_html=True)
-    else:
-        st.warning("Precast progression image not found.")
 
 with col4:
     if os.path.exists(assembly_img):
         st.image(assembly_img, use_container_width=True)
         st.markdown('<div class="image-caption">Mass Assembly Capability</div>', unsafe_allow_html=True)
-    else:
-        st.warning("Mass assembly image not found.")
 
 # --------------------------------------------------
 # 8. Sidebar Inputs
@@ -557,6 +543,18 @@ with st.form("contact_form"):
         )
         est_units = st.number_input("Estimated Unit Count", min_value=1, value=100, step=1)
 
+    c3, c4 = st.columns(2)
+    with c3:
+        target_start_date = st.date_input("Target Start Date", value=None)
+    with c4:
+        estimated_budget_usd = st.number_input(
+            "Estimated Budget (USD)",
+            min_value=0,
+            value=0,
+            step=50000,
+            format="%d"
+        )
+
     project_brief = st.text_area("Project Brief")
     submitted = st.form_submit_button("Submit Request for Review")
 
@@ -564,6 +562,10 @@ if submitted:
     if not full_name.strip() or not email.strip():
         st.error("Please provide at least Full Name and Email Address.")
     else:
+        target_start_date_str = ""
+        if target_start_date is not None:
+            target_start_date_str = str(target_start_date)
+
         submission_data = {
             "submitted_at_utc": datetime.utcnow().isoformat(),
             "full_name": full_name.strip(),
@@ -572,6 +574,8 @@ if submitted:
             "project_state": project_state,
             "project_type": project_type,
             "estimated_unit_count": est_units,
+            "target_start_date": target_start_date_str,
+            "estimated_budget_usd": estimated_budget_usd,
             "project_brief": project_brief.strip(),
         }
 
@@ -595,20 +599,7 @@ if submitted:
             st.error("Submission failed. No destination could be saved.")
 
 # --------------------------------------------------
-# 13. Admin Preview
-# --------------------------------------------------
-with st.expander("Admin Preview: Saved Submissions", expanded=False):
-    if os.path.exists(csv_path):
-        try:
-            with open(csv_path, "r", encoding="utf-8") as f:
-                st.code(f.read())
-        except Exception as e:
-            st.error(f"Could not read saved submissions: {e}")
-    else:
-        st.caption("No submissions saved yet.")
-
-# --------------------------------------------------
-# 14. Brand Positioning
+# 13. Brand Positioning
 # --------------------------------------------------
 st.markdown("---")
 st.markdown("""
