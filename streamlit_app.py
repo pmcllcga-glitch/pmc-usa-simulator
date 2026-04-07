@@ -117,38 +117,72 @@ st.markdown("""
         background: #071426;
     }
 
-    .hero-box {
+    .brand-banner {
+        position: relative;
+        overflow: hidden;
         background: linear-gradient(135deg, #071426 0%, #0a1730 100%);
-        padding: 54px 52px;
-        border-radius: 14px;
         border-left: 6px solid #2563eb;
+        border-radius: 14px;
+        padding: 42px 40px 38px 40px;
         margin-top: 10px;
         margin-bottom: 20px;
     }
 
-    .hero-eyebrow {
-        font-size: 11px;
+    .brand-banner::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
+            linear-gradient(35deg, rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(145deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+        background-size: 72px 72px, 72px 72px, 220px 220px, 260px 260px;
+        opacity: 0.22;
+        pointer-events: none;
+    }
+
+    .brand-banner-inner {
+        position: relative;
+        z-index: 1;
+    }
+
+    .brand-topline {
+        font-size: 12px;
+        letter-spacing: 2.2px;
         text-transform: uppercase;
-        letter-spacing: 4px;
-        color: #60a5fa;
-        margin-bottom: 18px;
-        font-weight: 700;
-    }
-
-    .hero-title {
-        font-size: 34px;
-        font-weight: 800;
-        line-height: 1.15;
+        color: #9ec5ff;
+        font-weight: 600;
         margin-bottom: 16px;
-        color: #f8fafc;
     }
 
-    .hero-copy {
-        font-size: 17px;
+    .brand-headline {
+        font-size: 40px;
+        line-height: 1.14;
+        font-weight: 800;
+        color: #f8fafc;
+        margin-bottom: 16px;
+        max-width: 980px;
+    }
+
+    .brand-subheadline {
+        font-size: 18px;
+        line-height: 1.75;
+        color: rgba(255,255,255,0.86);
+        max-width: 980px;
+        margin-bottom: 12px;
+    }
+
+    .brand-bodycopy {
+        font-size: 16px;
         line-height: 1.8;
-        color: rgba(255,255,255,0.82);
-        max-width: 900px;
-        font-weight: 400;
+        color: #b8c7dd;
+        max-width: 980px;
+    }
+
+    .logo-kpi-wrap {
+        margin-top: 18px;
+        margin-bottom: 10px;
     }
 
     .kpi-card {
@@ -231,53 +265,71 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# 5. Hero Section
+# 5. Brand Banner + Logo + KPI Section
 # --------------------------------------------------
-st.markdown('<div class="hero-box">', unsafe_allow_html=True)
+st.markdown("""
+<div class="brand-banner">
+    <div class="brand-banner-inner">
+        <div class="brand-topline">
+            Engineered for Predictability. Built for Value.
+        </div>
 
-if os.path.exists(logo_path):
-    st.image(logo_path, width=110)
+        <div class="brand-headline">
+            A New Standard for Residential Delivery.
+        </div>
 
-st.markdown('<div class="hero-eyebrow">Strategic Investment Platform</div>', unsafe_allow_html=True)
-st.markdown('<div class="hero-title">Build Faster. Deliver Earlier. Capture More Value.</div>', unsafe_allow_html=True)
-st.markdown(
-    '<div class="hero-copy">'
-    'Asia PCE is a precast concrete delivery system designed for multifamily development '
-    'with stronger schedule control, greater predictability, and earlier revenue potential.'
-    '</div>',
-    unsafe_allow_html=True
-)
+        <div class="brand-subheadline">
+            PMC is a branded delivery platform that connects precision-manufactured
+            construction systems with local U.S. execution partners.
+        </div>
+
+        <div class="brand-bodycopy">
+            Designed to improve speed, predictability, and capital efficiency across
+            multifamily, townhome, and workforce housing.
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="logo-kpi-wrap">', unsafe_allow_html=True)
+
+top_left, top_right = st.columns([1, 5])
+
+with top_left:
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=110)
+
+with top_right:
+    k1, k2, k3 = st.columns(3)
+
+    with k1:
+        st.markdown("""
+        <div class="kpi-card">
+            <div class="kpi-label">Cost Efficiency</div>
+            <div class="kpi-value">Up to 30%</div>
+            <div class="kpi-sub">Potential reduction in total construction cost under upside scenario assumptions.</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k2:
+        st.markdown("""
+        <div class="kpi-card">
+            <div class="kpi-label">Delivery Speed</div>
+            <div class="kpi-value">Up to 7 Months</div>
+            <div class="kpi-sub">Illustrative schedule acceleration compared with conventional delivery methods.</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k3:
+        st.markdown("""
+        <div class="kpi-card">
+            <div class="kpi-label">Revenue Timing</div>
+            <div class="kpi-value">Earlier Occupancy</div>
+            <div class="kpi-sub">Faster completion may support earlier lease-up and revenue capture.</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
-
-k1, k2, k3 = st.columns(3)
-
-with k1:
-    st.markdown("""
-    <div class="kpi-card">
-        <div class="kpi-label">Cost Efficiency</div>
-        <div class="kpi-value">Up to 30%</div>
-        <div class="kpi-sub">Potential reduction in total construction cost under upside scenario assumptions.</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with k2:
-    st.markdown("""
-    <div class="kpi-card">
-        <div class="kpi-label">Delivery Speed</div>
-        <div class="kpi-value">Up to 7 Months</div>
-        <div class="kpi-sub">Illustrative schedule acceleration compared with conventional delivery methods.</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with k3:
-    st.markdown("""
-    <div class="kpi-card">
-        <div class="kpi-label">Revenue Timing</div>
-        <div class="kpi-value">Earlier Occupancy</div>
-        <div class="kpi-sub">Faster completion may support earlier lease-up and revenue capture.</div>
-    </div>
-    """, unsafe_allow_html=True)
 
 st.caption("Use the scenario-based ROI simulator below to test project economics.")
 
@@ -545,7 +597,7 @@ with st.form("contact_form"):
 
     c3, c4 = st.columns(2)
     with c3:
-        target_start_date = st.date_input("Target Start Date", value=None)
+        target_start_date = st.date_input("Target Start Date")
     with c4:
         estimated_budget_usd = st.number_input(
             "Estimated Budget (USD)",
@@ -562,10 +614,6 @@ if submitted:
     if not full_name.strip() or not email.strip():
         st.error("Please provide at least Full Name and Email Address.")
     else:
-        target_start_date_str = ""
-        if target_start_date is not None:
-            target_start_date_str = str(target_start_date)
-
         submission_data = {
             "submitted_at_utc": datetime.utcnow().isoformat(),
             "full_name": full_name.strip(),
@@ -574,7 +622,7 @@ if submitted:
             "project_state": project_state,
             "project_type": project_type,
             "estimated_unit_count": est_units,
-            "target_start_date": target_start_date_str,
+            "target_start_date": str(target_start_date),
             "estimated_budget_usd": estimated_budget_usd,
             "project_brief": project_brief.strip(),
         }
